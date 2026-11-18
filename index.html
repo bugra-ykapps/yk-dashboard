@@ -1,0 +1,1013 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>YK Apps Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================== tokens
+   Monochrome studio palette: warm off-white canvas, white cards, near-black ink.
+   Black is the only accent (active nav, primary button, one hero card per view).
+   Chart series: ink → mid grey → light grey, told apart by line style too. */
+:root{
+  color-scheme:light;
+  --canvas:#e7e6e3; --canvas-2:#f4f3f1; --board:rgba(255,255,255,.46); --board-line:rgba(255,255,255,.85);
+  --card:#fbfbfa; --card-2:#f0efed; --card-3:#e6e5e2; --line:#e8e7e4; --grid:#efeeeb;
+  --ink:#111111; --ink-2:#6b6a67; --muted:#a3a29e; --on-ink:#ffffff;
+  --hero:#0f0f0f; --hero-2:#1c1c1c; --hero-ink:#f5f5f3; --hero-muted:#8f8e8a;
+  --c1:#111111; --c2:#8e8d89; --c3:#c9c8c4; --c4:#4b4a48;
+  --s1:var(--c1); --s2:var(--c2); --s3:var(--c3); --s4:#b3b2ae; --s5:var(--c3); --s6:var(--c1); --s7:var(--c1); --s8:#6f6e6a;
+  --good:#2f7a4f; --bad:#b0463e;
+  --shadow:0 1px 2px rgba(17,17,17,.04),0 12px 32px -12px rgba(17,17,17,.10);
+  --shadow-lg:0 40px 90px -30px rgba(17,17,17,.22);
+  --r-xl:34px; --r-lg:26px; --r-md:18px; --r-sm:12px;
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --canvas:#0b0b0b; --canvas-2:#161615; --board:rgba(255,255,255,.035); --board-line:rgba(255,255,255,.07);
+  --card:#171716; --card-2:#202020; --card-3:#2a2a29; --line:#262625; --grid:#222221;
+  --ink:#f3f3f1; --ink-2:#a3a29e; --muted:#6f6e6a; --on-ink:#111111;
+  --hero:#f3f3f1; --hero-2:#e4e4e1; --hero-ink:#111111; --hero-muted:#6b6a67;
+  --c1:#f3f3f1; --c2:#8f8e8a; --c3:#4e4d4b; --c4:#c4c3bf;
+  --s4:#6a6966; --s8:#a9a8a4; --good:#6cc08f; --bad:#e2867e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -12px rgba(0,0,0,.6); --shadow-lg:0 40px 90px -30px rgba(0,0,0,.8);
+}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){
+  color-scheme:dark;
+  --canvas:#0b0b0b; --canvas-2:#161615; --board:rgba(255,255,255,.035); --board-line:rgba(255,255,255,.07);
+  --card:#171716; --card-2:#202020; --card-3:#2a2a29; --line:#262625; --grid:#222221;
+  --ink:#f3f3f1; --ink-2:#a3a29e; --muted:#6f6e6a; --on-ink:#111111;
+  --hero:#f3f3f1; --hero-2:#e4e4e1; --hero-ink:#111111; --hero-muted:#6b6a67;
+  --c1:#f3f3f1; --c2:#8f8e8a; --c3:#4e4d4b; --c4:#c4c3bf;
+  --s4:#6a6966; --s8:#a9a8a4; --good:#6cc08f; --bad:#e2867e;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 32px -12px rgba(0,0,0,.6); --shadow-lg:0 40px 90px -30px rgba(0,0,0,.8);}}
+
+/* ===================================================================== base */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{min-height:100vh;color:var(--ink);font:14px/1.45 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 700px at 12% -10%,var(--canvas-2),transparent 60%),radial-gradient(900px 600px at 100% 110%,var(--canvas-2),transparent 55%),var(--canvas);
+  background-attachment:fixed;transition:background-color .3s}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+svg.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sub{color:var(--ink-2);font-size:12.5px;line-height:1.5}
+.empty{padding:34px;text-align:center;color:var(--muted)}
+code{font-size:12px;background:var(--card-2);padding:1px 6px;border-radius:6px}
+
+/* ===================================================================== board + sidebar */
+.board{display:grid;grid-template-columns:232px minmax(0,1fr);gap:14px;max-width:1600px;margin:22px auto;padding:14px;
+  background:var(--board);border:1px solid var(--board-line);border-radius:var(--r-xl);box-shadow:var(--shadow-lg);
+  backdrop-filter:blur(24px) saturate(1.2);-webkit-backdrop-filter:blur(24px) saturate(1.2)}
+.side{position:sticky;top:22px;align-self:start;height:calc(100vh - 72px);min-height:560px;display:flex;flex-direction:column;
+  background:var(--card);border-radius:var(--r-lg);padding:22px 14px 14px;box-shadow:var(--shadow)}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px 22px;font-weight:600;letter-spacing:-.01em}
+.yk{width:42px;height:auto;flex:none;fill:var(--logo)}
+:root{--logo:#14271f}
+:root[data-theme="dark"]{--logo:#eef2ef}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--logo:#eef2ef}}
+.brand>div{font-size:15px}
+.logo{width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--on-ink);display:grid;place-items:center;font:700 12px "Inter Tight",Inter,sans-serif;letter-spacing:.02em}
+.brand small{display:block;font-weight:400;color:var(--ink-2);font-size:11.5px}
+#nav{display:flex;flex-direction:column;gap:4px}
+#nav button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;padding:11px 14px;border-radius:999px;color:var(--ink);font-size:13.5px;font-weight:500;text-align:left;
+  transition:background .25s var(--ease),color .25s var(--ease),transform .25s var(--ease)}
+#nav button svg{opacity:.85}
+#nav button:hover{background:var(--card-2)}
+#nav button.on{background:var(--ink);color:var(--on-ink);box-shadow:0 8px 18px -8px rgba(0,0,0,.45)}
+#nav button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;gap:12px;padding-top:14px}
+.fresh{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);padding:0 8px}
+.fresh i{width:8px;height:8px;border-radius:50%;background:var(--ink);flex:none}
+.fresh.stale i{background:var(--bad);box-shadow:0 0 0 4px color-mix(in srgb,var(--bad) 18%,transparent)}
+.cta{display:flex;align-items:center;gap:12px;border:0;background:var(--ink);color:var(--on-ink);border-radius:999px;padding:6px 18px 6px 6px;font-weight:500;font-size:14px;
+  box-shadow:0 14px 26px -12px rgba(0,0,0,.55);transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
+.cta:hover{transform:translateY(-1px);box-shadow:0 18px 30px -12px rgba(0,0,0,.6)}
+.cta .ring{width:36px;height:36px;border-radius:50%;background:var(--on-ink);color:var(--ink);display:grid;place-items:center;flex:none}
+.cta[disabled]{cursor:wait;opacity:.85}
+.spin{width:16px;height:16px;border:2px solid color-mix(in srgb,var(--ink) 25%,transparent);border-top-color:var(--ink);border-radius:50%;animation:sp .8s linear infinite;display:none}
+.cta.busy .spin{display:block}.cta.busy .arrow{display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.profile{display:flex;align-items:center;gap:10px;padding:12px;border-radius:var(--r-md);background:var(--card-2)}
+.profile .logo{width:30px;height:30px;font-size:11px}
+.profile b{font-weight:600;font-size:13px;display:block}.profile span{font-size:11.5px;color:var(--ink-2)}
+
+/* ===================================================================== content header */
+.content{min-width:0;padding:10px 10px 30px}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:8px 6px 18px}
+.actions{display:flex;gap:8px;padding-top:4px}
+h1{font:700 46px/1 "Inter Tight",Inter,sans-serif;letter-spacing:-.035em;margin:0;display:inline-block}
+.tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 2px 22px}
+.pillbar{display:flex;align-items:center;gap:6px;background:var(--card);border-radius:999px;padding:5px;box-shadow:var(--shadow)}
+.seg{position:relative;display:flex;background:var(--card-2);border-radius:999px;padding:3px}
+.seg button{position:relative;z-index:1;border:0;background:none;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:500;color:var(--ink-2);transition:color .25s var(--ease)}
+.seg button.on{color:var(--ink)}
+.seg .thumb{position:absolute;top:3px;left:0;border-radius:999px;background:var(--card);box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 10px -4px rgba(0,0,0,.18);transition:transform .35s var(--ease),width .35s var(--ease)}
+:root[data-theme="dark"] .seg .thumb{background:var(--card-3)}
+@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])) .seg .thumb{background:var(--card-3)}}
+.sel{appearance:none;-webkit-appearance:none;border:0;background:var(--card-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 12px center;
+  border-radius:999px;padding:8px 30px 8px 14px;font-size:12.5px;font-weight:500;color:var(--ink)}
+.switch{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:var(--ink-2);padding:6px 8px;user-select:none;cursor:pointer;white-space:nowrap}
+.switch input{appearance:none;-webkit-appearance:none;width:34px;height:20px;border-radius:999px;background:var(--card-3);position:relative;margin:0;cursor:pointer;transition:background .25s var(--ease)}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .25s var(--ease)}
+.switch input:checked{background:var(--ink)}
+.switch input:checked::after{transform:translateX(14px)}
+.round{width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;background:var(--card);color:var(--ink);box-shadow:var(--shadow);transition:transform .2s var(--ease)}
+.round.dark{background:var(--ink);color:var(--on-ink)}
+.round:hover{transform:translateY(-1px)}
+
+/* ===================================================================== cards + layout */
+#main{min-height:60vh}
+h2{font:600 17px/1.2 Inter,sans-serif;letter-spacing:-.01em;color:var(--ink);margin:30px 4px 14px}
+.grid{display:grid;gap:14px}
+.kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.c2{grid-template-columns:repeat(auto-fit,minmax(min(100%,500px),1fr))}
+.c3{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.card{background:var(--card);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow);min-width:0;transition:transform .3s var(--ease),box-shadow .3s var(--ease)}
+.card:hover{box-shadow:0 1px 2px rgba(17,17,17,.05),0 22px 44px -20px rgba(17,17,17,.18)}
+.card h3{margin:0 0 4px;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.card .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.card .hd>div:first-child{max-width:720px}
+/* KPI tiles: label, big number, delta chip */
+.kpi{display:flex;flex-direction:column;gap:6px;padding:18px 18px 18px 20px}
+.kpi .v{margin-top:6px}
+.kpi .l{color:var(--ink-2);font-size:12.5px;font-weight:500}
+.kpi .v{white-space:nowrap;font:600 30px/1.05 "Inter Tight",Inter,sans-serif;letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin-top:auto}
+.kpi .v small{font:500 12px Inter,sans-serif;letter-spacing:0;color:var(--ink-2);margin-left:5px;white-space:nowrap}
+.hero .v small{color:var(--hero-muted)}
+.kpi .d{align-self:flex-start;font-size:11.5px;font-weight:500;padding:3px 9px;border-radius:999px;background:var(--card-2);font-variant-numeric:tabular-nums}
+.kpi.hero,.card.hero{background:var(--hero);color:var(--hero-ink);box-shadow:0 26px 50px -24px rgba(0,0,0,.55)}
+.hero .l,.hero .sub{color:var(--hero-muted)} .hero .d{background:var(--hero-2);color:var(--hero-ink)}
+.up{color:var(--good)} .down{color:var(--bad)} .flat{color:var(--ink-2)}
+.hero .up,.hero .down{color:var(--hero-ink)}
+/* banners */
+.banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 14px;padding:12px 18px;border-radius:var(--r-md);background:var(--card);box-shadow:var(--shadow);font-size:13px;color:var(--ink-2)}
+.banner b{color:var(--ink);font-weight:600}
+.banner.stale{background:var(--hero);color:var(--hero-muted);position:sticky;top:12px;z-index:5}
+.banner.stale b{color:var(--hero-ink)}
+.banner .mini{margin-left:auto;border:0;border-radius:999px;padding:7px 14px;background:var(--hero-ink);color:var(--hero);font-weight:600;font-size:12.5px}
+
+/* ===================================================================== charts */
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.legend span[data-s]{cursor:pointer;user-select:none;transition:opacity .2s}
+.legend span[data-s]:hover{color:var(--ink)}
+.legend span.off{opacity:.35;text-decoration:line-through}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%}
+.legend svg{width:20px;height:8px;overflow:visible}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{fill:var(--muted);font-size:11px;font-family:Inter,sans-serif}
+.tip{position:fixed;z-index:50;pointer-events:none;background:#111;color:#f5f5f3;border-radius:14px;padding:10px 12px;font-size:12px;box-shadow:0 18px 40px -12px rgba(0,0,0,.5);display:none;min-width:150px}
+.tip .t{font-weight:600;margin-bottom:6px;color:#fff}
+.tip.src{max-width:380px}.tip.src .r{gap:14px}.tip.src .r span{color:#9b9a96}.tip.src .r b{text-align:right;font-weight:500}
+.tip .r{display:flex;justify-content:space-between;gap:18px;font-variant-numeric:tabular-nums;color:#c9c8c4;padding:1px 0}
+.tip .r b{color:#fff;font-weight:600}
+.tip .r i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;box-shadow:0 0 0 1px rgba(255,255,255,.35)}
+/* bars, progress, funnel */
+.bar-row{display:grid;grid-template-columns:140px 1fr 80px;gap:12px;align-items:center;margin:12px 0;font-size:13px}
+.bar-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-row b{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.track{background:var(--card-2);border-radius:999px;height:8px;overflow:hidden}
+.track>div{height:100%;border-radius:999px;background:var(--ink);transform-origin:left;transition:width .6s var(--ease)}
+.fstep{margin:14px 0}
+.fstep .fl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+.fstep .fl b{font-weight:600}
+.fstep .track{height:14px}
+
+/* ===================================================================== tables */
+.tablewrap{overflow:auto;max-height:600px;border-radius:var(--r-lg);background:var(--card);box-shadow:var(--shadow)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:12px 16px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;padding-left:22px}
+th:last-child,td:last-child{padding-right:22px}
+td.txt,th.txt{text-align:left}
+thead th{position:sticky;top:0;background:var(--card);color:var(--ink-2);font-weight:500;font-size:12px;cursor:pointer;user-select:none;z-index:1;padding-top:16px}
+thead th:hover{color:var(--ink)} th.sorted{color:var(--ink)} th.sorted::after{content:" ↓";opacity:.6} th.sorted.asc::after{content:" ↑"}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--card-2)}
+tbody tr:last-child td{border-bottom:0}
+tfoot td{font-weight:600;background:var(--card);position:sticky;bottom:0;border-top:1px solid var(--ink);border-bottom:0}
+.name{max-width:340px;overflow:hidden;text-overflow:ellipsis}
+.card .tablewrap{box-shadow:none;background:transparent;border-radius:0;margin:0 -24px -22px;max-height:640px}
+.card .tablewrap thead th,.card .tablewrap tfoot td{background:var(--card)}
+.card .search{box-shadow:none;background-color:var(--card-2)}
+.tbar{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:0 0 12px}
+.search{border:0;background:var(--card);box-shadow:var(--shadow);border-radius:999px;padding:10px 16px 10px 38px;width:280px;max-width:100%;font-size:13px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23999' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='M9.5 9.5 13 13'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:15px center}
+.search:focus{outline:2px solid var(--ink);outline-offset:1px}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:500}
+.pill.ok{background:var(--ink);color:var(--on-ink)}
+.pill.error{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.pill.skipped{background:var(--card-2);color:var(--ink-2)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:9px;vertical-align:1px;box-shadow:0 0 0 1px color-mix(in srgb,var(--ink) 18%,transparent)}
+/* heatmap */
+.heat td{padding:8px 10px;text-align:center;font-size:12px;min-width:58px;border-bottom:2px solid var(--card);border-left:2px solid var(--card);border-radius:8px;transition:transform .15s}
+.heat td:first-child{text-align:left;font-weight:500;background:var(--card);border-left:0}
+
+/* ===================================================================== creatives: dark preview cards */
+.crow{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.cre{background:var(--hero);color:var(--hero-ink);border-radius:var(--r-lg);padding:10px;box-shadow:0 26px 50px -24px rgba(0,0,0,.5);transition:transform .3s var(--ease)}
+.cre:hover{transform:translateY(-3px)}
+.cre .th{aspect-ratio:4/5;border-radius:18px;background:var(--hero-2) center/cover no-repeat;display:grid;place-items:center;color:var(--hero-muted);font-size:12px;position:relative}
+.cre .rk{position:absolute;left:10px;top:10px;background:var(--hero-ink);color:var(--hero);border-radius:999px;padding:3px 10px;font-size:11.5px;font-weight:600}
+.cre .b{padding:12px 8px 6px;font-size:12px}
+.cre .b b{display:block;font-size:13px;font-weight:600;margin-bottom:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cre .m{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;color:var(--hero-muted)}
+.cre .m span:nth-child(even){text-align:right;color:var(--hero-ink);font-variant-numeric:tabular-nums;font-weight:500}
+
+/* ===================================================================== overlays */
+.modal{position:fixed;inset:0;background:rgba(10,10,10,.45);backdrop-filter:blur(6px);display:none;place-items:center;z-index:60;padding:16px}
+.modal.on{display:grid}
+.modal .box{background:var(--card);border-radius:var(--r-lg);padding:26px;width:min(560px,100%);box-shadow:var(--shadow-lg)}
+.modal label{display:block;margin:14px 0 6px;font-size:12.5px;color:var(--ink-2)}
+.modal input{width:100%;padding:11px 14px;border-radius:999px;border:0;background:var(--card-2)}
+.btn{border:0;border-radius:999px;padding:10px 18px;font-weight:500;background:var(--card-2)}
+.btn.dark{background:var(--ink);color:var(--on-ink)}
+.toast{position:fixed;right:22px;bottom:22px;z-index:70;background:#111;color:#e9e9e6;border-radius:var(--r-md);padding:14px 18px;box-shadow:0 24px 50px -16px rgba(0,0,0,.55);max-width:440px;display:none;font-size:13px;line-height:1.7}
+.toast b{color:#fff}
+.toast .pill.ok{background:#fff;color:#111}
+
+/* ===================================================================== date picker */
+.seg button .i{width:15px;height:15px;vertical-align:-3px}
+.seg button.pick{display:inline-flex;align-items:center;gap:6px}
+.dp{position:fixed;z-index:45;display:none;gap:16px;background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:16px;border:1px solid var(--line);max-width:calc(100vw - 24px)}
+.dp.on{display:flex;animation:rise .28s var(--ease) both}
+.dp-pre{display:flex;flex-direction:column;gap:2px;padding-right:14px;border-right:1px solid var(--line);min-width:146px}
+.dp-pre button{border:0;background:none;text-align:left;padding:9px 14px;border-radius:999px;font-size:13px;color:var(--ink-2);transition:background .2s,color .2s}
+.dp-pre button:hover{background:var(--card-2);color:var(--ink)}
+.dp-pre button.on{background:var(--ink);color:var(--on-ink)}
+.dp-main{display:flex;flex-direction:column;gap:12px}
+.dp-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dp-head b{font-weight:600;font-size:14px;flex:1;text-align:center}
+.dp-months{display:flex;gap:22px}
+.cal{display:grid;grid-template-columns:repeat(7,38px);row-gap:3px}
+.cal .dow{font-size:11px;color:var(--muted);text-align:center;padding:2px 0 6px}
+.cal button{height:36px;border:0;background:none;font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums;transition:background .15s}
+.cal button:not(:disabled):hover{background:var(--card-2);border-radius:999px}
+.cal button.in{background:var(--card-2);border-radius:0}
+.cal button.start,.cal button.end{background:var(--ink);color:var(--on-ink);border-radius:999px}
+.cal button.start.in-r{border-radius:999px 0 0 999px}.cal button.end.in-l{border-radius:0 999px 999px 0}
+.cal button.start.end{border-radius:999px}
+.cal button:disabled{color:var(--muted);opacity:.4;cursor:default}
+.cal button.today:not(.start):not(.end){box-shadow:inset 0 0 0 1px var(--ink);border-radius:999px}
+.dp-foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:12px}
+.dp-foot .sub{flex:1}
+@media (max-width:760px){.dp{flex-direction:column;left:12px!important;right:12px}.dp-pre{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:0 0 10px}.dp-months>.cal:nth-child(2){display:none}.cal{grid-template-columns:repeat(7,1fr)}}
+[data-srcid]{cursor:help}
+
+/* ===================================================================== motion */
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+#main.anim>*,#main.anim .grid>*{animation:rise .5s var(--ease) both}
+#main.anim>*:nth-child(2),#main.anim .grid>*:nth-child(2){animation-delay:.04s}
+#main.anim>*:nth-child(3),#main.anim .grid>*:nth-child(3){animation-delay:.08s}
+#main.anim>*:nth-child(4),#main.anim .grid>*:nth-child(4){animation-delay:.12s}
+#main.anim>*:nth-child(5),#main.anim .grid>*:nth-child(5){animation-delay:.16s}
+#main.anim>*:nth-child(6),#main.anim .grid>*:nth-child(6){animation-delay:.2s}
+#main.anim>*:nth-child(n+7),#main.anim .grid>*:nth-child(n+7){animation-delay:.24s}
+#main.anim .draw{stroke-dasharray:1;animation:draw 1.1s var(--ease) .15s both}
+#main.anim .barg rect{transform-box:fill-box;transform-origin:bottom;animation:grow .7s var(--ease) both}
+#main.anim .fade{animation:fadein .9s var(--ease) .2s both}
+.title-anim{animation:rise .45s var(--ease) both}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ===================================================================== responsive */
+@media (max-width:1180px){
+  .board{grid-template-columns:84px minmax(0,1fr)}
+  .side{padding:18px 10px 12px}.brand{justify-content:center;padding:0 0 18px}.brand div:last-child{display:none}
+  #nav button{justify-content:center;padding:12px}#nav button span{display:none}
+  .fresh span,.profile div,.cta .lbl{display:none}.fresh{justify-content:center}.profile{justify-content:center;padding:8px}
+  .cta{padding:6px;justify-content:center}
+}
+@media (max-width:760px){
+  .board{display:block;margin:0;border-radius:0;padding:10px;border:0;min-height:100vh}
+  .side{position:static;height:auto;min-height:0;flex-direction:row;align-items:center;gap:8px;padding:8px;border-radius:999px;overflow-x:auto}
+  .brand{padding:0 4px}.side-foot{flex-direction:row;margin:0;padding:0}.profile,.fresh{display:none}
+  #nav{flex-direction:row;gap:2px}
+  .content{padding:6px 2px 30px}.top{padding:14px 4px 14px}
+  h1{font-size:34px}.tools{justify-content:flex-start}
+  .kpi .v{font-size:24px}.card{padding:18px}.bar-row{grid-template-columns:96px 1fr 64px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:16px}.kpi .d{font-size:10.5px}
+  .tools{gap:8px}.pillbar{max-width:100%;flex-wrap:wrap;border-radius:22px}.seg{max-width:100%;overflow-x:auto;scrollbar-width:none}
+  .card .tablewrap{margin:0 -18px -18px}
+}
+</style>
+</head>
+<body>
+<div class="board">
+  <aside class="side">
+    <div class="brand"><svg class="yk" viewBox="0 0 1600 880" aria-label="YK Apps"><path d="M24 39 270 41 608 513Q630 540 630 573L629 864H412V580Q412 558 398 540Z"/><path d="M622 424 874 50Q886 37 902 37H1016L676 505Z"/><path d="M741 629 743 598Q748 548 796 502L1405 28Q1412 23 1425 23H1537L1267 237Q1004 434 741 629Z"/><path d="M1001 499 1058 449Q1098 413 1145 424Q1188 433 1224 465Q1262 498 1296 539L1503 788 1576 864H1387Q1337 864 1293 834Q1260 813 1226 772Z"/></svg><div>YK Apps</div></div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      <div class="fresh" id="fresh"><i></i><span>Loading…</span></div>
+      <button class="cta" id="bPull" title="Pull live data from every source"><span class="ring"><svg class="i arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg><span class="spin"></span></span><span class="lbl" id="pullTxt">Pull Live Data</span></button>
+    </div>
+  </aside>
+  <section class="content">
+    <div class="top">
+      <div><h1 id="pageTitle">Overview</h1></div>
+      <div class="actions">
+        <button class="round" id="bTheme" title="Light / dark"><svg class="i" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+        <button class="round" id="bSet" title="Settings · data sources"><svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
+      </div>
+    </div>
+    <div class="tools">
+      <div class="pillbar"><div class="seg" id="segGran"></div></div>
+      <div class="pillbar"><div class="seg" id="segRange"></div></div>
+      <div class="pillbar"><div class="seg" id="segChan"></div></div>
+      <div class="pillbar"><div class="seg" id="segOs"></div></div>
+      <div class="pillbar"><label class="switch" title="Hide the last 4 install days (today + 3): their 3-day trials haven't converted yet"><input type="checkbox" id="fFin"> Finished cohorts</label><label class="switch" title="Compare with the previous period of the same length"><input type="checkbox" id="fCmp"> Comparison</label></div>
+    </div>
+    <main id="main"><div class="empty" style="padding:90px 20px">Loading live data… (about 15 seconds)</div></main>
+  </section>
+</div>
+<div class="tip" id="tip"></div>
+<div class="dp" id="dp"></div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="box">
+  <h3 style="margin:0 0 6px;font-size:18px">Connection</h3>
+  <div class="sub">Paste the Apps Script web app URL (Deploy → Web app) and the dashboard key you saved in Setup keys. Stored only in this browser. Leave the URL empty for demo data.</div>
+  <label>Web app URL</label><input id="sUrl" placeholder="https://script.google.com/macros/s/…/exec">
+  <label>Dashboard key</label><input id="sKey" placeholder="DASH_KEY">
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn" id="sCancel">Cancel</button><button class="btn dark" id="sSave">Save &amp; load</button></div>
+</div></div>
+
+<script>/*__YK_EMBED__*/</script>
+<script>
+/* ============================================================ config / state */
+/* The access key is never in this file: it comes from the link (…#k=KEY, the part after # never reaches a server)
+   or from the ⚙ Connection dialog, and is remembered in this browser. */
+const CONFIG = { webAppUrl: "https://script.google.com/macros/s/AKfycbyvi2NozW-3rA2NRm1ZPDxfrtIGEbB-Jlh7yPr6JuXMJUuQkYTporBZ-hWNbnDu7znIqw/exec", key: "" };
+{const m=location.hash.match(/[#&]k=([A-Za-z0-9_-]+)/); if(m){try{localStorage.setItem('yk_key',m[1])}catch(e){}}}
+const LS = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
+const S = { raw:null, demo:false, tab:LS.get('yk_tab')||'overview', app:'all', range:30, chan:'all', sort:{}, search:{}, end:null, finished:LS.get('yk_fin')!=='0', w0split:LS.get('yk_w0split')==='1', os:LS.get('yk_os')||'all', gran:LS.get('yk_gran')||'day', compare:LS.get('yk_cmp')!=='0', hidden:{} };
+const CH = { meta:{name:'Meta',color:'var(--c1)'}, google:{name:'Google',color:'var(--c2)'}, asa:{name:'Apple Search Ads',color:'var(--c3)'}, other:{name:'Other / organic',color:'var(--c4)'} };
+/* monochrome series are also told apart by line style */
+const DASH=['', '6 5', '1.5 4.5', '10 4 2 4'];
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ============================================================ formatting */
+const f0 = n=>isFinite(n)?Math.round(n).toLocaleString('en-US'):'–';
+const fK = n=>!isFinite(n)?'–':Math.abs(n)>=1e6?(n/1e6).toFixed(2)+'M':Math.abs(n)>=1e4?(n/1e3).toFixed(1)+'k':f0(n);
+const fUsd = n=>!isFinite(n)?'–':(n<0?'-':'')+'$'+(Math.abs(n)>=1e4?fK(Math.abs(n)):Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0}));
+const fUsd2 = n=>!isFinite(n)?'–':'$'+n.toFixed(2);
+const fPct = n=>!isFinite(n)?'–':(n*100).toFixed(1)+'%';
+const fX = n=>!isFinite(n)?'–':(n*100).toFixed(0)+'%';        // ROAS shown as %
+const div = (a,b)=>b>0?a/b:NaN;
+
+/* ============================================================ data model */
+const D = { fact:[], ads:[], adsets:[], camps:[], cre:{}, af:[], ph:[], coh:[], size:[], adapty:[], src:[] };
+
+/** iOS / Android from a campaign or ad set name (Meta: "_And_" = Android, "_iOS_" = iOS) */
+function osFromName(s){s=String(s||'').toLowerCase(); if(/(^|[_\s-])(and|android|aos)([_\s-]|$)/.test(s))return'android'; if(/(^|[_\s-])ios([_\s-]|$)/.test(s))return'ios'; return'';}
+/** PostHog $os: Adapty's server-side events (trials, purchases) carry none; Adapty here is App Store only, so they are iOS (as is macOS = iPad app on Mac) */
+const phOs=o=>{o=String(o||'').toLowerCase();return o===''||o==='macos'||o==='ios'?'ios':o;};
+const osOfAppId=id=>/^id\d+$/.test(String(id||''))?'ios':(id?'android':'');
+function classify(src){ src=String(src||'').toLowerCase(); if(/facebook|meta|instagram|fb/.test(src))return'meta'; if(/google|adwords|youtube|uac/.test(src))return'google'; if(/apple|asa|searchads/.test(src))return'asa'; return'other'; }
+
+function build(){
+  const T = S.raw.tabs, ok=r=>S.app==='all'||!r.app||r.app===S.app;
+  const n = x=>+x||0;
+  // unified daily fact: date, channel, app, campaign, adset, ad, spend, impr, clicks, installs, trials
+  const fact=[];
+  (T.meta_ads_daily||[]).filter(ok).forEach(r=>fact.push({date:String(r.date),ch:'meta',os:osFromName(r.campaign)||osFromName(r.adset),app:r.app,camp:r.campaign,campId:r.campaign_id,set:r.adset,adId:r.ad_id,ad:r.ad,spend:n(r.spend),impr:n(r.impressions),clk:n(r.clicks),inst:n(r.installs),trial:n(r.trials),v3:n(r.video_3s),v100:n(r.video_p100)}));
+  (T.google_ads_daily||[]).filter(ok).forEach(r=>fact.push({date:String(r.date),ch:'google',os:String(r.os||'')||osFromName(r.campaign),app:r.app,camp:r.campaign,campId:r.campaign_id,set:r.adgroup,spend:n(r.spend),impr:n(r.impressions),clk:n(r.clicks),inst:n(r.conversions),trial:0}));
+  const af=(T.appsflyer_daily||[]).filter(ok).map(r=>({date:String(r.date),app:r.app,os:osOfAppId(r.app_id),ch:classify(r.media_source),src:r.media_source,camp:r.campaign,spend:n(r.cost),impr:n(r.impressions),clk:n(r.clicks),inst:n(r.installs),rev:n(r.revenue),trial:n(r.trials),paid:n(r.purchases)}));
+  // Apple Search Ads: its own API when connected (real spend); otherwise AppsFlyer's view (installs, little or no cost)
+  const asa=(T.asa_daily||[]).filter(ok);
+  if(asa.length) asa.forEach(r=>fact.push({date:String(r.date),ch:'asa',os:'ios',app:r.app,camp:r.campaign,campId:r.campaign_id,set:'',spend:n(r.spend),impr:n(r.impressions),clk:n(r.taps),inst:n(r.installs),trial:0}));
+  else af.filter(r=>r.ch==='asa').forEach(r=>fact.push({date:r.date,ch:'asa',os:'ios',app:r.app,camp:r.camp||'Apple Search Ads',set:'',spend:r.spend,impr:r.impr,clk:r.clk,inst:r.inst,trial:r.trial}));
+  D.asaSource=asa.length?'api':'appsflyer';
+  // Trials: network APIs don't report them (Meta iOS is SKAN-only, Google/ASA count installs), AppsFlyer does
+  // (Adapty → AppsFlyer events). Network rows keep spend/installs; AppsFlyer adds trial rows, matched to the
+  // network's campaign name (AppsFlyer drops the "_iOS" tag) or ASA campaign id.
+  fact.forEach(r=>{r.trial=0});
+  const ckey=s=>String(s||'').toLowerCase().replace(/_ios(?=_|$)/g,'').trim();
+  const campByKey={}; fact.forEach(r=>{campByKey[r.ch+'|'+ckey(r.camp)]=r.camp; if(r.campId)campByKey[r.ch+'|'+String(r.campId)]=r.camp;});
+  af.filter(r=>r.trial>0&&r.ch!=='other').forEach(r=>{const c=String(r.camp||'');
+    const camp=campByKey[r.ch+'|'+c]||campByKey[r.ch+'|'+ckey(c)]||(c&&c!=='None'?c:'(no campaign)');
+    fact.push({date:r.date,ch:r.ch,os:r.os,app:r.app,camp,set:'',spend:0,impr:0,clk:0,inst:0,trial:r.trial});});
+  // Install-date cohorts (Adapty, net revenue). w0 is blank until the cohort is finished.
+  const blank=v=>v===''||v===null||v===undefined;
+  D.cohorts=(T.install_cohorts||[]).map(r=>({d:String(r.install_date),label:String(r.media_source),ch:r.media_source==='campaign'?null:(r.media_source==='All users'?'all':classify(r.media_source)),
+    camp:String(r.campaign||''),os:String(r.os||'all'),inst:n(r.installs),w0:blank(r.revenue_w0)?NaN:n(r.revenue_w0),total:n(r.revenue_total)}))
+    .filter(r=>r.ch===null||r.os===S.os);   // campaign rows are single-OS already
+  D.afc=D.cohorts.filter(r=>r.ch&&r.ch!=='all').map(r=>({d:r.d,ch:r.ch,src:r.label,inst:r.inst,rev:r.w0}));
+  D.fact=S.os==='all'?fact:fact.filter(r=>r.os===S.os); D.af=S.os==='all'?af:af.filter(r=>r.os===S.os);
+  D.osUnknownSpend=S.os==='all'?0:fact.filter(r=>!r.os).reduce((t,r)=>t+r.spend,0);
+  {const m={}; (T.posthog_daily||[]).filter(r=>S.os==='all'||phOs(r.os)===S.os).forEach(r=>{const d=String(r.date),o=m[d]||(m[d]={date:d,dau:0,nu:0,trials:0,payers:0,rev:0});
+    o.dau+=n(r.dau);o.nu+=n(r.new_users);o.trials+=n(r.trials);o.payers+=n(r.payers);o.rev+=n(r.revenue);}); D.ph=Object.values(m).sort((a,b)=>a.date<b.date?-1:1);}
+  D.coh=(T.posthog_cohorts||[]).map(r=>({d:String(r.install_date),n:n(r.day_n),act:n(r.active_users),tr:n(r.trials),pay:n(r.payers),rev:n(r.revenue)}));
+  D.size=(T.posthog_cohort_size||[]).map(r=>({d:String(r.install_date),n:n(r.installs)}));
+  D.anchor=((T.posthog_cohort_size||[])[0]||{}).anchor==='trial'?'trial':'install';
+  const store={all:'all',ios:'app_store',android:'play_store'}[S.os];
+  D.adapty=(T.adapty_daily||[]).map(r=>({date:String(r.date),m:String(r.metric),v:n(r.value),store:String(r.store||'all')})).filter(r=>r.store===store);
+  D.cre={}; (T.meta_creatives||[]).forEach(c=>D.cre[c.ad_id]=c);
+  D.src=T.data_sources||[];
+  const all=[...fact.map(r=>r.date),...D.ph.map(r=>r.date),...D.adapty.map(r=>r.date),...af.map(r=>r.date)].sort();
+  S.dataEnd = all.length?all[all.length-1]:TODAY;
+  // "Only finished cohorts": the window ends at the last finished install day (today − 4)
+  S.end = S.finished && S.dataEnd>CUTOFF ? CUTOFF : S.dataEnd;
+  // first day with data = first day Adapty has any non-zero value (fallback: earliest spend/install day)
+  const firstAct=D.adapty.filter(r=>r.v>0).map(r=>r.date).sort()[0]||fact.filter(r=>r.spend>0||r.inst>0).map(r=>r.date).sort()[0];
+  S.dataStart=firstAct||all[0]||S.end;
+}
+const addDays=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+/* 3-day trial → weekly: an install day is "finished" once its trial has converted (D3), i.e. 4 days later.
+   Today and the 3 days before are unfinished and never enter a ROAS. */
+const MATURE_DAYS=4;
+const TODAY=(()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)})();
+const CUTOFF=addDays(TODAY,-MATURE_DAYS);
+const finishedTo=to=>to<CUTOFF?to:CUTOFF;
+const cohSum=(pred,from,to,k='w0')=>D.cohorts.filter(r=>pred(r)&&inR(r.d,from,finishedTo(to))&&isFinite(r[k])).reduce((s,r)=>s+r[k],0);
+/** W0 revenue of finished cohorts in [from,to]: 'all' = every install (blended), or one channel (attributed) */
+const w0Rev=(ch,from,to)=>cohSum(r=>ch==='all'?r.ch==='all':r.ch===ch,from,to);
+const spendFin=(rows,from,to)=>rows.filter(r=>inR(r.date,from,finishedTo(to))).reduce((s,r)=>s+r.spend,0);
+/** W0 ROAS for the current channel filter: blended for all channels, attributed for one */
+function w0Roas(from,to){const rows=D.fact.filter(chanOk);return div(w0Rev(S.chan==='all'?'all':S.chan,from,to),spendFin(rows,from,to));}
+/** campaign key Adapty uses: ASA = campaign id, others = name */
+const campW0=(r,from,to)=>{const keys=[String(r.campId||''),String(r.camp||'')].filter(Boolean);return D.cohorts.some(c=>c.ch===null&&keys.includes(c.camp))?cohSum(c=>c.ch===null&&keys.includes(c.camp),from,to):NaN;};
+const daysBetween=(a,b)=>Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);
+/** selected window. Presets end at S.end (today − 4 with "Finished cohorts"); "All" starts on the first data day;
+ *  a custom range is clipped to the same end. prev = the same number of days just before. */
+function win(endOverride){
+  const e=endOverride||S.end; let from,to;
+  if(S.custom){ to=S.custom.to<e?S.custom.to:e; from=S.custom.from<to?S.custom.from:to; }
+  else if(!S.range){ from=S.dataStart<e?S.dataStart:e; to=e; }
+  else { to=e; from=addDays(e,-S.range+1); if(from<S.dataStart)from=S.dataStart; }
+  const len=daysBetween(from,to)+1, all=!S.custom&&!S.range;
+  return {from,to,pf:all?null:addDays(from,-len),pt:all?null:addDays(from,-1),len};
+}
+const inR=(d,a,b)=>d>=a&&d<=b;
+function chanOk(r){ return S.chan==='all'||r.ch===S.chan; }
+function agg(rows){ const o={spend:0,impr:0,clk:0,inst:0,trial:0,v3:0,v100:0}; rows.forEach(r=>{for(const k in o)o[k]+=r[k]||0}); return o; }
+function revenueIn(a,b){ // best available revenue: Adapty 'revenue' → PostHog → AppsFlyer sales
+  const m=D.adapty.some(r=>r.m==='revenue_net')?'revenue_net':'revenue';
+  const ad=D.adapty.filter(r=>r.m===m&&inR(r.date,a,b)); if(ad.length) return {v:ad.reduce((s,r)=>s+r.v,0),src:m==='revenue_net'?'Adapty (net of store fee & tax)':'Adapty (gross)'};
+  const ph=D.ph.filter(r=>inR(r.date,a,b)); if(ph.some(r=>r.rev)) return {v:ph.reduce((s,r)=>s+r.rev,0),src:'PostHog'};
+  const af=D.af.filter(r=>inR(r.date,a,b)); return {v:af.reduce((s,r)=>s+r.rev,0),src:'AppsFlyer'};
+}
+function period(a,b){
+  const rows=D.fact.filter(r=>inR(r.date,a,b)&&chanOk(r)), t=agg(rows);
+  const ph=D.ph.filter(r=>inR(r.date,a,b)), payers=ph.reduce((s,r)=>s+r.payers,0), trialsPH=ph.reduce((s,r)=>s+r.trials,0);
+  const rev=revenueIn(a,b);
+  t.trialAll=t.trial||trialsPH; t.payers=payers; t.rev=rev.v; t.revSrc=rev.src;
+  t.cpi=div(t.spend,t.inst); t.cpt=div(t.spend,t.trialAll); t.cac=div(t.spend,payers); t.roas=div(t.rev,t.spend);
+  t.ctr=div(t.clk,t.impr); t.cpc=div(t.spend,t.clk); t.cpm=div(t.spend*1000,t.impr);
+  return t;
+}
+
+/* ============================================================ demo data */
+function demo(){
+  let seed=7; const rnd=()=>{seed=(seed*1664525+1013904223)%4294967296;return seed/4294967296};
+  const end=new Date(); end.setUTCDate(end.getUTCDate()-1); const iso=d=>d.toISOString().slice(0,10);
+  const days=[...Array(90)].map((_,i)=>{const d=new Date(end);d.setUTCDate(d.getUTCDate()-89+i);return iso(d)});
+  const apps={Fontly:1.3,Loveloop:1,Stickly:.6}, T={meta_ads_daily:[],meta_creatives:[],google_ads_daily:[],appsflyer_daily:[],posthog_daily:[],posthog_cohorts:[],posthog_cohort_size:[],adapty_daily:[],data_sources:[]};
+  const angles=['UGC hook · pain point','Before/after demo','Founder story','Screen record walkthrough','Meme format','Testimonial stack'];
+  const hues=['2a78d6','eb6834','1baf7a','e87ba4','6250d6','eda100'];
+  const svg=(c,t)=>'data:image/svg+xml;utf8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#${c}"/><text x="150" y="160" font-family="sans-serif" font-size="22" fill="#fff" text-anchor="middle">${t}</text></svg>`);
+  const instByApp={}, spendByApp={};
+  Object.entries(apps).forEach(([app,k])=>{
+    const adsMeta=[]; for(let c=0;c<3;c++)for(let s=0;s<2;s++)for(let a=0;a<3;a++){const idx=(c*2+s)*3+a; adsMeta.push({c,s,a,id:`${app}_ad${idx}`,q:.55+rnd()*.9,name:`${angles[idx%6]} v${a+1}`}); T.meta_creatives.push({app,ad_id:`${app}_ad${idx}`,ad:`${angles[idx%6]} v${a+1}`,status:rnd()>.2?'ACTIVE':'PAUSED',thumbnail_url:svg(hues[idx%6],angles[idx%6].split(' ')[0]),object_type:rnd()>.4?'VIDEO':'SHARE',title:'',body:''});}
+    days.forEach((d,di)=>{
+      const wk=1+.12*Math.sin(di/7*Math.PI*2), grow=1+di/150;
+      adsMeta.forEach(x=>{const sp=(9+rnd()*9)*k*wk*grow*(x.q>1?1.3:.8); const impr=sp/(6+rnd()*3)*1000, clk=impr*(.008+.01*x.q*rnd()), inst=clk*(.22+.18*x.q)*(.7+rnd()*.6), tr=inst*(.14+.06*x.q);
+        T.meta_ads_daily.push({date:d,app,account_id:'act_'+app,campaign_id:`${app}_c${x.c}`,campaign:`${app}_iOS_Meta_${['AAA_US','Broad_WW','LAL_Payers'][x.c]}`,adset_id:`${app}_s${x.c}${x.s}`,adset:`${['Adv+','Interest','Broad'][x.s]} ${['18-34','25-44'][x.s%2]}`,ad_id:x.id,ad:x.name,spend:+sp.toFixed(2),impressions:Math.round(impr),clicks:Math.round(clk),reach:Math.round(impr*.7),installs:Math.round(inst),trials:Math.round(tr),purchases:Math.round(tr*.4),video_3s:Math.round(impr*(.22+.1*x.q*rnd())),video_p100:Math.round(impr*.04*x.q)})});
+      for(let c=0;c<2;c++)for(let g=0;g<2;g++){const sp=(8+rnd()*6)*k*wk*grow; const impr=sp/4*1000,clk=impr*.02; T.google_ads_daily.push({date:d,app,customer_id:'1234567890',campaign_id:`${app}_g${c}`,campaign:`${app}_UAC_${['Installs_US','tROAS_WW'][c]}`,channel:'MULTI_CHANNEL',adgroup_id:`${app}_gg${c}${g}`,adgroup:['Core','Expansion'][g],spend:+sp.toFixed(2),impressions:Math.round(impr),clicks:Math.round(clk),conversions:Math.round(clk*.16),all_conversions:Math.round(clk*.2)})}
+      const asaSp=(7+rnd()*4)*k*wk*grow, asaInst=asaSp/(2.4+rnd()*.6);
+      const mSp=T.meta_ads_daily.filter(r=>r.date===d&&r.app===app).reduce((s,r)=>s+r.spend,0), mIn=T.meta_ads_daily.filter(r=>r.date===d&&r.app===app).reduce((s,r)=>s+r.installs,0);
+      const gSp=T.google_ads_daily.filter(r=>r.date===d&&r.app===app).reduce((s,r)=>s+r.spend,0), gIn=T.google_ads_daily.filter(r=>r.date===d&&r.app===app).reduce((s,r)=>s+r.conversions,0);
+      [['Facebook Ads',mSp,mIn,.9],['googleadwords_int',gSp,gIn,.8],['Apple Search Ads',asaSp,asaInst,1.5],['organic',0,asaInst*1.2,1]].forEach(([m,sp,ins,rq])=>{
+        T.appsflyer_daily.push({date:d,app,app_id:'id1',media_source:m,campaign:m==='organic'?'':`${app}_${m}`,impressions:0,clicks:0,installs:Math.round(ins),cost:+sp.toFixed(2),revenue:+(ins*rq*(.5+rnd()*.5)*1.1).toFixed(2),trials:Math.round(ins*.13),purchases:Math.round(ins*.05),sessions:Math.round(ins*4)});});
+      instByApp[app]=(instByApp[app]||0)+1;
+    });
+  });
+  // posthog / cohorts / adapty are account-wide in the demo
+  const instD={}; T.appsflyer_daily.forEach(r=>{instD[r.date]=(instD[r.date]||0)+r.installs});
+  days.forEach((d,i)=>{const nu=instD[d]||0; T.posthog_daily.push({date:d,dau:Math.round(nu*5.5+400),new_users:nu,trials:Math.round(nu*.15),payers:Math.round(nu*.06+30),revenue:+(nu*.9+260+i*3).toFixed(2)});});
+  const sizes={}; days.slice(-45).forEach((d,ci,arr)=>{const nu=instD[d]; sizes[d]=nu; T.posthog_cohort_size.push({install_date:d,installs:nu});
+    const age=arr.length-1-ci; for(let n=0;n<=Math.min(30,age);n++){const ret=n===0?1:.38*Math.pow(n,-.55); const rv=n===0?.18:(n===7?.55:n===14?.25:n===30?.6:.05)*(.8+rnd()*.4);
+      T.posthog_cohorts.push({install_date:d,day_n:n,active_users:Math.round(nu*ret),trials:n<=3?Math.round(nu*.045):0,payers:Math.round(nu*(n===7?.04:n===0?.01:.002)),revenue:+(nu*rv*.45).toFixed(2)});}});
+  const m0=Math.round(T.posthog_daily.slice(0,5).reduce((s,r)=>s+r.revenue,0));
+  days.forEach((d,i)=>{const r=T.posthog_daily[i]; const mrr=4200+i*95+rnd()*120;
+    [['revenue',r.revenue*1.05],['mrr',mrr],['arr',mrr*12],['trials_new',r.trials],['subscriptions_new',r.trials*.55],['subscriptions_active',620+i*7],['refund_money',r.revenue*.03]].forEach(([m,v])=>T.adapty_daily.push({date:d,metric:m,value:+(+v).toFixed(2),store:'all',country:'all'}));});
+  ['meta','google','appsflyer','posthog','adapty'].forEach(s=>T.data_sources.push({source:s,status:'ok',rows:1000,message:'demo',seconds:3,pulled_at:new Date().toISOString()}));
+  return {generated_at:new Date().toISOString(),apps:Object.keys(apps),tabs:T};
+}
+
+/* ============================================================ chart helpers */
+const tip=$('#tip');
+function showTip(e,html){ tip.innerHTML=html; tip.style.display='block'; const w=tip.offsetWidth,h=tip.offsetHeight; let x=e.clientX+14,y=e.clientY+14; if(x+w>innerWidth-8)x=e.clientX-w-14; if(y+h>innerHeight-8)y=e.clientY-h-14; tip.style.left=x+'px'; tip.style.top=y+'px'; }
+const hideTip=()=>tip.style.display='none';
+const niceMax=v=>{if(!(v>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),m=v/p;return(m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p};
+const swatch=(i)=>i.line?`<svg viewBox="0 0 20 8"><line x1="1" y1="4" x2="19" y2="4" stroke="${i.color}" stroke-width="2" stroke-linecap="round" ${i.dash?`stroke-dasharray="${i.dash}"`:''}/></svg>`:`<i style="background:${i.color}"></i>`;
+const legend=items=>`<div class="legend">${items.map(i=>`<span>${swatch(i)}${esc(i.name)}</span>`).join('')}</div>`;
+
+/** time series: type bar|line|area, stacked for bars. series:[{name,color,values[]}]
+ *  Monochrome: series 2+ get a dash pattern (lines) so they stay apart without hue; the card legend is rebuilt to match. */
+let _gid=0;
+/* ---- daily → weekly (weeks start Monday). Each series says how it aggregates:
+   default sum · agg:'last' (status, e.g. active subs, MRR) · agg:'avg' · ratio from num/den (e.g. CPI = Σspend ÷ Σinstalls) */
+const monday=d=>{const x=new Date(d+'T00:00:00Z');return addDays(d,-((x.getUTCDay()+6)%7));};
+const bucketOf=d=>S.gran==='week'?monday(d):d;
+function weekBuckets(dates){const keys=[],idx=[],pos={};dates.forEach((d,i)=>{const k=monday(d);if(pos[k]===undefined){pos[k]=keys.length;keys.push(k);idx.push([])}idx[pos[k]].push(i)});return {keys,idx};}
+function aggSeries(s,idx){
+  const fin=v=>isFinite(v)&&v!==null;
+  return idx.map(ix=>{
+    if(s.num&&s.den){let a=0,b=0;ix.forEach(i=>{if(fin(s.num[i]))a+=s.num[i];if(fin(s.den[i]))b+=s.den[i]});return b>0?a/b*(s.mult||1):NaN}
+    const v=ix.map(i=>s.values[i]).filter(fin); if(!v.length)return NaN;
+    return s.agg==='last'?v[v.length-1]:s.agg==='avg'?v.reduce((x,y)=>x+y,0)/v.length:v.reduce((x,y)=>x+y,0);});
+}
+/** rows with a date field → weekly rows: sums the given keys, then `after(row)` recomputes ratios */
+function bucketRows(rows,key,sumKeys,after){
+  if(S.gran!=='week')return rows;
+  const m=new Map(); rows.forEach(r=>{const k=monday(r[key]);let o=m.get(k);if(!o){o={[key]:k};sumKeys.forEach(f=>o[f]=0);m.set(k,o)}sumKeys.forEach(f=>{if(isFinite(r[f]))o[f]+=r[f]})});
+  return [...m.values()].map(o=>(after&&after(o),o));
+}
+/** time series: type bar|line|area, stacked for bars. series:[{name,color,values[],agg?,num?,den?,mult?}]
+ *  Monochrome: series 2+ get a dash pattern (lines). Legend items toggle their series and the chart rescales. */
+function timeChart(el,opts){
+  el._opts=opts;
+  let {dates,series,type='line',stacked=false,fmt=fK,h=250,zero=true,noBucket=false}=opts;
+  const W=Math.max(el.clientWidth,320),H=h,m={l:48,r:12,t:10,b:26},iw=W-m.l-m.r,ih=H-m.t-m.b;
+  const card=el.closest('.card'), lg=card&&card.querySelector('.hd .legend');
+  const isLine=type!=='bar';
+  series.forEach((s,i)=>{s.dash=isLine?DASH[i%DASH.length]:''});
+  const weekly=S.gran==='week'&&!noBucket;
+  if(weekly){const b=weekBuckets(dates);dates=b.keys;series=series.map(s=>({...s,values:aggSeries(s,b.idx)}));}
+  const N=dates.length;
+  const hid=S.hidden[el.id]||(S.hidden[el.id]=new Set());
+  if(lg){ lg.innerHTML=series.length>1||isLine?series.map(s=>`<span data-s="${esc(s.name)}" class="${hid.has(s.name)?'off':''}" title="Show / hide">${swatch({...s,line:isLine})}${esc(s.name)}</span>`).join(''):'';
+    lg.querySelectorAll('[data-s]').forEach(sp=>sp.onclick=()=>{const n=sp.dataset.s; hid.has(n)?hid.delete(n):hid.add(n); timeChart(el,el._opts);}); }
+  if(!N){el.innerHTML='<div class="empty">No data in this range</div>';return;}
+  series=series.filter(s=>!hid.has(s.name));
+  if(!series.length){el.innerHTML=`<div class="empty" style="height:${H}px;display:grid;place-items:center">All series hidden. Click a legend item to show it.</div>`;return;}
+  const tot=dates.map((_,i)=>series.reduce((s,x)=>s+(isFinite(x.values[i])?x.values[i]:0),0));
+  const maxV=niceMax(stacked?Math.max(...tot):Math.max(...series.flatMap(s=>s.values.map(v=>isFinite(v)?v:0))));
+  const minV=zero?0:Math.min(...series.flatMap(s=>s.values.filter(isFinite)));
+  const y=v=>m.t+ih-(v-minV)/(maxV-minV||1)*ih, x=i=>m.l+(type==='bar'?(i+.5)/N*iw:(N===1?iw/2:i/(N-1)*iw));
+  let g='', defs='';
+  for(let t=0;t<=4;t++){const v=minV+(maxV-minV)*t/4; g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" ${t?'stroke-dasharray="2 4"':''}/><text class="ax" x="${m.l-10}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text>`;}
+  const step=Math.ceil(N/7); dates.forEach((d,i)=>{if(i%step===0||i===N-1&&N>1&&(N-1)%step>step/2)g+=`<text class="ax" x="${x(i)}" y="${H-6}" text-anchor="middle">${/^\d{4}-/.test(d)?d.slice(5):d}</text>`});
+  if(type==='bar'){
+    const slot=iw/N, grouped=!stacked&&series.length>1, bw=Math.max(2,Math.min(26,slot*(grouped?.8:.62))), sw=grouped?bw/series.length:bw;
+    g+='<g class="barg">';
+    dates.forEach((d,i)=>{let base=0; series.forEach((s,k)=>{const v=s.values[i]; if(!isFinite(v)||!v)return;
+      const y0=y(stacked?base+v:v),y1=y(stacked?base:0), xx=x(i)-bw/2+(grouped?k*sw:0), hgt=Math.max(0,y1-y0-(stacked&&base?2:0));
+      const r=Math.min(4,sw/2,hgt/2);
+      g+=`<rect x="${xx.toFixed(1)}" y="${y0.toFixed(1)}" width="${(grouped?sw-1.5:sw).toFixed(1)}" height="${hgt.toFixed(1)}" rx="${r}" fill="${s.color}" style="animation-delay:${Math.min(i*12,300)}ms"/>`; base+=v;});});
+    g+='</g>';
+  } else series.forEach((s,k)=>{
+    const pts=s.values.map((v,i)=>isFinite(v)&&v!==null?[x(i),y(v)]:null).filter(Boolean); if(!pts.length)return;
+    // smooth path (monotone-ish cubic) for a softer, drawn look
+    let d=`M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+    for(let i=1;i<pts.length;i++){const [x0,y0]=pts[i-1],[x1,y1]=pts[i],cx=(x0+x1)/2; d+=`C${cx.toFixed(1)} ${y0.toFixed(1)} ${cx.toFixed(1)} ${y1.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;}
+    if(type==='area'&&k===0){const id='ga'+(++_gid); defs+=`<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${s.color}" stop-opacity=".16"/><stop offset="1" stop-color="${s.color}" stop-opacity="0"/></linearGradient>`;
+      g+=`<path class="fade" d="${d}L${pts[pts.length-1][0]} ${y(minV)}L${pts[0][0]} ${y(minV)}Z" fill="url(#${id})"/>`;}
+    g+=s.dash?`<path class="fade" d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-dasharray="${s.dash}" stroke-linecap="round"/>`
+             :`<path class="draw" pathLength="1" d="${d}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}"><defs>${defs}</defs>${g}<line id="cx" y1="${m.t}" y2="${m.t+ih}" stroke="var(--ink)" stroke-opacity=".35" stroke-dasharray="2 3" style="display:none"/><g id="dots"></g><rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" id="hit"/></svg>`;
+  const svg=el.firstChild,cx=svg.querySelector('#cx'),dots=svg.querySelector('#dots');
+  svg.querySelector('#hit').addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W-m.l; let i=Math.round(type==='bar'?px/iw*N-.5:px/iw*(N-1)); i=Math.max(0,Math.min(N-1,i));
+    cx.setAttribute('x1',x(i));cx.setAttribute('x2',x(i));cx.style.display='';
+    dots.innerHTML=isLine?series.filter(s=>isFinite(s.values[i])).map(s=>`<circle cx="${x(i)}" cy="${y(s.values[i])}" r="4.5" fill="var(--card)" stroke="${s.color}" stroke-width="2"/>`).join(''):'';
+    showTip(e,`<div class="t">${weekly?'Week of '+dates[i]:dates[i]}</div>`+series.map(s=>`<div class="r"><span><i style="background:${s.color}"></i>${esc(s.name)}</span><b>${isFinite(s.values[i])?fmt(s.values[i]):'–'}</b></div>`).join('')+(stacked&&series.length>1?`<div class="r" style="border-top:1px solid #333;margin-top:6px;padding-top:6px"><span>Total</span><b>${fmt(tot[i])}</b></div>`:''));});
+  svg.querySelector('#hit').addEventListener('mouseleave',()=>{cx.style.display='none';dots.innerHTML='';hideTip()});
+}
+function hbar(el,items,fmt=fK){
+  if(!items.length){el.innerHTML='<div class="empty">No data</div>';return;}
+  const mx=Math.max(...items.map(i=>i.value))||1;
+  el.innerHTML=items.map(i=>`<div class="bar-row" data-t="${esc(i.name)}: ${fmt(i.value)}"><span><span class="dot" style="background:${i.color}"></span>${esc(i.name)}</span><div class="track"><div style="width:${Math.max(1.5,i.value/mx*100)}%;background:${i.color}"></div></div><b>${fmt(i.value)}</b></div>`).join('');
+  el.querySelectorAll('[data-t]').forEach(n=>{n.onmousemove=e=>showTip(e,n.dataset.t);n.onmouseleave=hideTip});
+}
+function funnel(el,steps){ // steps [{name,value}]
+  const mx=steps[0].value||1, shade=['var(--c1)','var(--c2)','var(--c3)'];
+  el.innerHTML=steps.map((s,i)=>{const prev=i?steps[i-1].value:null;return `<div class="fstep"><div class="fl"><span>${esc(s.name)}</span><span><b>${fK(s.value)}</b>${prev!=null?` <span class="sub">· ${fPct(div(s.value,prev))} of previous</span>`:''}</span></div><div class="track"><div style="width:${Math.max(1.5,s.value/mx*100)}%;background:${shade[i]||'var(--c2)'}"></div></div></div>`}).join('');
+}
+function heat(el,{rows,cols,get,fmt,scale}){
+  if(!rows.length){el.innerHTML='<div class="empty">No cohort data yet — press Pull Live Data</div>';return;}
+  const vals=rows.flatMap(r=>cols.map(c=>get(r,c))).filter(v=>typeof v==='number'&&isFinite(v)), mx=scale||Math.max(...vals,1e-9);
+  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>Install date</th>${cols.map(c=>`<th style="cursor:default;text-align:center">D${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${r.label}</td>${cols.map(c=>{const v=get(r,c);if(v==='nospend')return '<td style="color:var(--muted);background:var(--card-2)">–</td>';if(!isFinite(v))return '<td></td>';const k=Math.min(1,v/mx),pct=Math.round(6+k*84);
+    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${r.label} · D${c}: ${fmt(v)}">${fmt(v)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
+  el.querySelectorAll('[data-t]').forEach(n=>{n.onmousemove=e=>showTip(e,n.dataset.t);n.onmouseleave=hideTip});
+}
+/** sortable table. cols:[{k,label,fmt,txt}] */
+function table(el,id,cols,rows,{search=true,total=true,limit=300,totalLabel='Total'}={}){
+  const st=S.sort[id]||(S.sort[id]={k:cols.find(c=>!c.txt)?.k||cols[0].k,asc:false}), q=(S.search[id]||'').toLowerCase();
+  let data=rows.filter(r=>!q||cols.some(c=>c.txt&&String(r[c.k]).toLowerCase().includes(q)));
+  data.sort((a,b)=>{const x=a[st.k],y=b[st.k]; const r=(typeof x==='string')?String(x).localeCompare(y):((isFinite(x)?x:-Infinity)-(isFinite(y)?y:-Infinity)); return st.asc?r:-r});
+  const shown=data.slice(0,limit);
+  el.innerHTML=(search?`<div class="tbar"><input class="search" placeholder="Search…" value="${esc(S.search[id]||'')}" data-s><span class="sub">${data.length} rows${data.length>limit?` (top ${limit})`:''}</span></div>`:'')+
+   `<div class="tablewrap"><table><thead><tr>${cols.map(c=>`<th class="${c.txt?'txt':''} ${st.k===c.k?'sorted'+(st.asc?' asc':''):''}" data-k="${c.k}">${c.label}</th>`).join('')}</tr></thead><tbody>${shown.map(r=>`<tr>${cols.map(c=>`<td class="${c.txt?'txt name':''}" ${c.txt?`title="${esc(r[c.k])}"`:''}>${c.html?c.html(r):c.txt?esc(r[c.k]):(c.fmt||f0)(r[c.k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="empty">No rows</td></tr>`}</tbody>${total&&data.length?`<tfoot><tr>${cols.map((c,i)=>`<td class="${c.txt?'txt':''}">${i===0?totalLabel:c.tot?c.fmt(c.tot(data)):''}</td>`).join('')}</tr></tfoot>`:''}</table></div>`;
+  el.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; st.asc=st.k===k?!st.asc:false; st.k=k; table(el,id,cols,rows,{search,total,limit,totalLabel})});
+  const inp=el.querySelector('[data-s]'); if(inp)inp.oninput=()=>{S.search[id]=inp.value; const p=inp.selectionStart; table(el,id,cols,rows,{search,total,limit,totalLabel}); const n=el.querySelector('[data-s]'); n.focus(); n.setSelectionRange(p,p)};
+}
+const metricCols=(extra=[])=>[...extra,
+  {k:'spend',label:'Spend',fmt:fUsd,tot:d=>sumK(d,'spend')},{k:'impr',label:'Impr.',fmt:fK,tot:d=>sumK(d,'impr')},{k:'clk',label:'Clicks',fmt:fK,tot:d=>sumK(d,'clk')},
+  {k:'ctr',label:'CTR',fmt:fPct,tot:d=>div(sumK(d,'clk'),sumK(d,'impr'))},{k:'cpm',label:'CPM',fmt:fUsd2,tot:d=>div(sumK(d,'spend')*1000,sumK(d,'impr'))},
+  {k:'inst',label:'Installs',fmt:fK,tot:d=>sumK(d,'inst')},{k:'cpi',label:'CPI',fmt:fUsd2,tot:d=>div(sumK(d,'spend'),sumK(d,'inst'))},
+  {k:'trial',label:'Trials',fmt:fK,tot:d=>sumK(d,'trial')},{k:'cpt',label:'CPT',fmt:fUsd2,tot:d=>div(sumK(d,'spend'),sumK(d,'trial'))},
+  {k:'i2t',label:'Install→Trial',fmt:fPct,tot:d=>div(sumK(d,'trial'),sumK(d,'inst'))}];
+const sumK=(d,k)=>d.reduce((s,r)=>s+(r[k]||0),0);
+function groupBy(rows,keyFn,seed){
+  const m=new Map(); rows.forEach(r=>{const k=keyFn(r); let o=m.get(k); if(!o){o={...seed(r),spend:0,spendF:0,impr:0,clk:0,inst:0,trial:0,v3:0,v100:0};m.set(k,o)} for(const f of ['spend','impr','clk','inst','trial','v3','v100'])o[f]+=r[f]||0; if(r.date<=CUTOFF)o.spendF+=r.spend||0;});
+  return [...m.values()].map(o=>({...o,ctr:div(o.clk,o.impr),cpm:div(o.spend*1000,o.impr),cpi:div(o.spend,o.inst),cpt:div(o.spend,o.trial),i2t:div(o.trial,o.inst),cpc:div(o.spend,o.clk)}));
+}
+const chBadge=ch=>`<span class="dot" style="background:${CH[ch]?.color}"></span>${CH[ch]?.name||ch}`;
+const dayList=(a,b)=>{const o=[];for(let d=a;d<=b;d=addDays(d,1))o.push(d);return o};
+function dailySeries(rows,key,dates){const m={};rows.forEach(r=>m[r.date]=(m[r.date]||0)+(r[key]||0));return dates.map(d=>m[d]||0)}
+
+/* ============================================================ views */
+const VIEWS={};
+const card=(title,_sub,body,id,extra='')=>`<div class="card"><div class="hd"><div><h3 ${id?`data-srcid="${id}"`:''}>${title}</h3></div>${extra}</div>${body||`<div id="${id}" class="chart"></div>`}</div>`;
+/** KPI tile: main value (+ optional detail in parentheses); the change chip only when Comparison is on and a previous value exists */
+function kpi(label,v,cur,prev,{inv=false,hero=false,extra=''}={}){
+  const dl=S.compare&&prev!=null&&isFinite(prev)&&prev!==0&&isFinite(cur)?(cur-prev)/Math.abs(prev):NaN, good=inv?dl<0:dl>0;
+  return `<div class="card kpi${hero?' hero':''}"><div class="l">${label}</div><div class="v">${v}${extra?`<small>(${extra})</small>`:''}</div>${isFinite(dl)?`<div class="d ${Math.abs(dl)<.0005?'flat':good?'up':'down'}">${(dl>0?'↑ ':'↓ ')+Math.abs(dl*100).toFixed(1)}% vs prev</div>`:''}</div>`;}
+const legendFor=()=>legend([]);   // filled by timeChart from its series
+/** Adapty status metric (e.g. active subs) on a given day */
+function adaptyAt(metric,day){const r=D.adapty.filter(x=>x.m===metric&&x.date<=day).sort((a,b)=>a.date<b.date?1:-1)[0];return r?r.v:NaN;}
+
+VIEWS.overview=()=>{
+  const w=win(), c=period(w.from,w.to), p=w.pf?period(w.pf,w.pt):{};
+  const r0=w0Roas(w.from,w.to), r0p=w.pf?w0Roas(w.pf,w.pt):NaN;
+  const sw=win(S.dataEnd), subsNow=adaptyAt('subscriptions_active',sw.to), subsPrev=sw.pf?adaptyAt('subscriptions_active',sw.pt):NaN;
+  return `<div class="grid kpis">
+   ${kpi('Spend',fUsd(c.spend),c.spend,p.spend)}
+   ${kpi('Installs',fK(c.inst),c.inst,p.inst,{extra:fUsd2(c.cpi)})}
+   ${kpi('Trials',fK(c.trial),c.trial,p.trial,{extra:fUsd2(div(c.spend,c.trial))})}
+   ${kpi('ROAS',fX(r0),r0,r0p,{hero:true,extra:fK(c.payers)+' payers'})}
+   ${kpi('Net Revenue',fUsd(c.rev),c.rev,p.rev)}
+   ${kpi('Paid subscriptions',fK(subsNow),subsNow,subsPrev)}</div>
+   <h2>Return on ad spend</h2>${w0Card('ov_w0')}
+   <h2>Cost</h2><div class="grid c2">
+    ${card('Spend by channel','',null,'ch_spend',legendFor())}
+    ${card('Revenue vs spend, by install day','',null,'ch_rev',legendFor())}</div>
+   <h2>Acquisition efficiency</h2><div class="grid c2">
+    ${card('Installs','',null,'ch_inst')}
+    ${card('CPI by channel','',null,'ch_cpi',legendFor())}</div>
+   <h2 data-srcid="t_chan">Channel summary</h2><div id="t_chan"></div>`;
+};
+VIEWS.overview.after=()=>{
+  renderW0($('#ov_w0'),null);
+  const w=win(), dates=dayList(w.from==='0000'?(D.fact.map(r=>r.date).sort()[0]||S.end):w.from,w.to), rows=D.fact.filter(r=>inR(r.date,dates[0],w.to));
+  const byCh=k=>rows.filter(r=>r.ch===k);
+  const vis=S.chan==='all'?['meta','google','asa']:[S.chan];
+  timeChart($('#ch_spend'),{dates,type:'bar',stacked:true,fmt:fUsd,series:vis.map(k=>({name:CH[k].name,color:CH[k].color,values:dailySeries(byCh(k),'spend',dates)}))});
+  // revenue cohorted by install day: finished days only
+  const fd=dates.filter(d=>d<=CUTOFF), wa=S.chan==='all', pick=r=>wa?r.ch==='all':r.ch===S.chan;
+  const coh=k=>fd.map(d=>{const x=D.cohorts.filter(r=>pick(r)&&r.d===d&&isFinite(r[k]));return x.length?x.reduce((s,r)=>s+r[k],0):NaN});
+  timeChart($('#ch_rev'),{dates:fd,type:'line',fmt:fUsd,series:[{name:'W0 revenue',color:'var(--c1)',values:coh('w0')},{name:'Spend',color:'var(--c2)',values:dailySeries(rows.filter(chanOk),'spend',fd)},{name:'Revenue to date',color:'var(--c4)',values:coh('total')}]});
+  timeChart($('#ch_inst'),{dates,type:'bar',fmt:fK,series:[{name:'Installs',color:'var(--c1)',values:dailySeries(rows.filter(chanOk),'inst',dates)}]});
+  const ma=(num,den)=>num.map((_,i)=>{let a=0,b=0;for(let j=Math.max(0,i-3);j<=Math.min(num.length-1,i+3);j++){a+=num[j];b+=den[j]}return b>0?a/b:NaN});
+  timeChart($('#ch_cpi'),{dates,type:'line',fmt:fUsd2,zero:false,series:vis.map(k=>{const sp=dailySeries(byCh(k),'spend',dates),ins=dailySeries(byCh(k),'inst',dates);return {name:CH[k].name,color:CH[k].color,values:ma(sp,ins),num:sp,den:ins}})});
+  const wr=D.fact.filter(r=>inR(r.date,w.from,w.to)&&chanOk(r)), g=groupBy(wr,r=>r.ch,r=>({ch:r.ch}));
+  g.forEach(r=>{r.w0=w0Rev(r.ch,w.from,w.to);r.w0roas=div(r.w0,r.spendF)});
+  const all=w0Rev('all',w.from,w.to), wa2=S.chan==='all';
+  table($('#t_chan'),'chan',[{k:'ch',label:'Channel',txt:true,html:r=>chBadge(r.ch)},...metricCols(),
+    {k:'w0',label:'W0 revenue',fmt:fUsd,tot:d=>wa2?all:sumK(d,'w0')},{k:'w0roas',label:'W0 ROAS',fmt:fX,tot:d=>div(wa2?all:sumK(d,'w0'),sumK(d,'spendF'))}],g,{search:false,totalLabel:wa2?'Total (w/ Organic)':'Total'});
+};
+function winRows(){const w=win();return D.fact.filter(r=>inR(r.date,w.from,w.to)&&chanOk(r))}
+VIEWS.channels=()=>`<div class="grid c2">${card('Spend share','',null,'c_share')}${card('Cost per trial by channel','',null,'c_cpt')}</div>
+  <h2>CTR & CPM by channel</h2><div class="grid c2">${card('CTR','',null,'c_ctr',legendFor())}${card('CPM','',null,'c_cpm',legendFor())}</div>
+  <h2 data-srcid="t_daily">${S.gran==='week'?'Weekly':'Daily'} breakdown</h2><div id="t_daily"></div>`;
+VIEWS.channels.after=()=>{
+  const rows=winRows(),g=groupBy(rows,r=>r.ch,r=>({ch:r.ch}));
+  hbar($('#c_share'),g.map(r=>({name:CH[r.ch].name,value:r.spend,color:CH[r.ch].color})),fUsd);
+  hbar($('#c_cpt'),g.filter(r=>r.trial>0).map(r=>({name:CH[r.ch].name,value:r.cpt,color:CH[r.ch].color})),fUsd2);
+  const w=win(),dates=dayList(w.from==='0000'?(D.fact.map(r=>r.date).sort()[0]||S.end):w.from,w.to),vis=S.chan==='all'?['meta','google','asa']:[S.chan];
+  const rr=k=>rows.filter(r=>r.ch===k);
+  const ratioSeries=(k,a,b,mult=1)=>{const A=dailySeries(rr(k),a,dates),B=dailySeries(rr(k),b,dates);return {name:CH[k].name,color:CH[k].color,values:A.map((x,i)=>B[i]>0?x/B[i]*mult:NaN),num:A,den:B,mult}};
+  timeChart($('#c_ctr'),{dates,type:'line',fmt:fPct,zero:false,series:vis.map(k=>ratioSeries(k,'clk','impr'))});
+  timeChart($('#c_cpm'),{dates,type:'line',fmt:fUsd2,zero:false,series:vis.map(k=>ratioSeries(k,'spend','impr',1000))});
+  const byDay=groupBy(rows,r=>bucketOf(r.date),r=>({date:bucketOf(r.date)}));
+  table($('#t_daily'),'daily',[{k:'date',label:S.gran==='week'?'Week of':'Date',txt:true},...metricCols().slice(0,10)],byDay);
+};
+VIEWS.campaigns=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_camp">Campaigns</h3></div></div><div id="t_camp"></div></div>`;
+VIEWS.campaigns.after=()=>{
+  const w=win(), g=groupBy(winRows(),r=>r.ch+'|'+r.camp,r=>({ch:r.ch,camp:r.camp||'(none)',campId:r.campId}));
+  g.forEach(r=>{r.w0=campW0(r,w.from,w.to);r.w0roas=div(r.w0,r.spendF)});
+  table($('#t_camp'),'camp',metricCols([{k:'ch',label:'Channel',txt:true,html:r=>chBadge(r.ch)},{k:'camp',label:'Campaign',txt:true}]).concat([
+    {k:'w0',label:'W0 revenue',fmt:fUsd,tot:d=>sumK(d.filter(r=>isFinite(r.w0)),'w0')},{k:'w0roas',label:'W0 ROAS',fmt:fX,tot:d=>{const x=d.filter(r=>isFinite(r.w0));return div(sumK(x,'w0'),sumK(x,'spendF'))}}]),g);
+};
+VIEWS.adsets=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_set">Ad sets / ad groups</h3></div></div><div id="t_set"></div></div>`;
+VIEWS.adsets.after=()=>table($('#t_set'),'set',metricCols([{k:'ch',label:'Channel',txt:true,html:r=>chBadge(r.ch)},{k:'camp',label:'Campaign',txt:true},{k:'set',label:'Ad set',txt:true}]),groupBy(winRows().filter(r=>r.set),r=>r.ch+'|'+r.camp+'|'+r.set,r=>({ch:r.ch,camp:r.camp,set:r.set})));
+VIEWS.creatives=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="cgrid">Top creatives by spend</h3></div></div><div id="cgrid" class="crow"></div></div><h2 data-srcid="t_cre">All creatives</h2><div id="t_cre"></div>`;
+VIEWS.creatives.after=()=>{
+  const g=groupBy(winRows().filter(r=>r.ch==='meta'&&r.adId),r=>r.adId,r=>({id:r.adId,ad:r.ad,camp:r.camp,set:r.set})).map(r=>({...r,hook:div(r.v3,r.impr),hold:div(r.v100,r.v3),status:D.cre[r.id]?.status||'',type:D.cre[r.id]?.object_type||'',thumb:D.cre[r.id]?.thumbnail_url||''}));
+  g.sort((a,b)=>b.spend-a.spend);
+  $('#cgrid').innerHTML=g.slice(0,12).map((r,i)=>`<div class="cre"><div class="th" style="${r.thumb?`background-image:url('${esc(r.thumb)}')`:''}">${r.thumb?'':'no thumbnail'}<span class="rk">#${i+1}</span></div><div class="b"><b title="${esc(r.ad)}">${esc(r.ad)}</b><div class="m"><span>Spend</span><span>${fUsd(r.spend)}</span><span>CPI</span><span>${fUsd2(r.cpi)}</span><span>CPT</span><span>${fUsd2(r.cpt)}</span><span>CTR</span><span>${fPct(r.ctr)}</span><span>Hook rate</span><span>${fPct(r.hook)}</span></div></div></div>`).join('')||'<div class="empty">No Meta creative data</div>';
+  table($('#t_cre'),'cre',metricCols([{k:'ad',label:'Creative',txt:true},{k:'camp',label:'Campaign',txt:true},{k:'status',label:'Status',txt:true},{k:'type',label:'Type',txt:true}]).concat([{k:'hook',label:'Hook rate',fmt:fPct,tot:d=>div(sumK(d,'v3'),sumK(d,'impr'))},{k:'hold',label:'Hold rate',fmt:fPct,tot:d=>div(sumK(d,'v100'),sumK(d,'v3'))}]),g);
+};
+VIEWS.users=()=>{const w=win(),ph=D.ph.filter(r=>inR(r.date,w.from,w.to)),c=period(w.from,w.to),pv=w.pf?D.ph.filter(r=>inR(r.date,w.pf,w.pt)):[];
+  const avg=a=>a.length?sumK(a,'dau')/a.length:NaN;
+  return `<div class="grid kpis">
+   ${kpi('New users',fK(sumK(ph,'nu')),sumK(ph,'nu'),w.pf?sumK(pv,'nu'):null)}${kpi('Avg DAU',fK(avg(ph)),avg(ph),w.pf?avg(pv):null)}${kpi('Trial starters',fK(sumK(ph,'trials')),sumK(ph,'trials'),w.pf?sumK(pv,'trials'):null)}${kpi('Paying users',fK(sumK(ph,'payers')),sumK(ph,'payers'),w.pf?sumK(pv,'payers'):null,{hero:true})}
+   ${kpi('Paid installs',fK(c.inst),c.inst,null)}${kpi('Organic share',fPct(1-div(c.inst,sumK(ph,'nu'))),0,null)}</div>
+   <h2>Funnel</h2><div class="grid c2">${card('Install → trial → paid','',null,'u_funnel')}${card('New users & DAU','',null,'u_dau',legendFor())}</div>
+   <h2>Conversion over time</h2><div class="grid c2">${card('Install → trial rate','',null,'u_i2t')}${card('Trials & payers','',null,'u_tp',legendFor())}</div>`};
+VIEWS.users.after=()=>{
+  const w=win(),dates=dayList(w.from==='0000'?(D.ph.map(r=>r.date).sort()[0]||S.end):w.from,w.to),ph=D.ph.filter(r=>inR(r.date,dates[0],w.to)),m={};ph.forEach(r=>m[r.date]=r);
+  const g=k=>dates.map(d=>m[d]?m[d][k]:NaN);
+  funnel($('#u_funnel'),[{name:'Installs / new users',value:sumK(ph,'nu')},{name:'Started trial',value:sumK(ph,'trials')},{name:'Paid subscribers',value:sumK(ph,'payers')}]);
+  timeChart($('#u_dau'),{dates,type:'line',fmt:fK,series:[{name:'DAU',color:'var(--c1)',values:g('dau'),agg:'avg'},{name:'New users',color:'var(--c2)',values:g('nu')}]});
+  timeChart($('#u_i2t'),{dates,type:'line',fmt:fPct,series:[{name:'Install→trial',color:'var(--c1)',values:dates.map(d=>m[d]?div(m[d].trials,m[d].nu):NaN),num:g('trials'),den:g('nu')}]});
+  timeChart($('#u_tp'),{dates,type:'bar',fmt:fK,series:[{name:'Trials',color:'var(--c3)',values:g('trials')},{name:'Payers',color:'var(--c1)',values:g('payers')}]});
+};
+/* ---- W0 ROAS by install day (or install week): W0 revenue of those installs ÷ ad spend on those days */
+function w0Model(){
+  const w=win(), wa=S.chan==='all';
+  const first=w.from==='0000'?(D.cohorts.map(r=>r.d).sort()[0]||S.end):w.from;
+  const dates=dayList(first,finishedTo(w.to));
+  if(!D.cohorts.length||!dates.length) return null;
+  const spendBy=ch=>{const m={};D.fact.filter(r=>ch==='all'?['meta','google','asa'].includes(r.ch):r.ch===ch).forEach(r=>m[r.date]=(m[r.date]||0)+r.spend);return m};
+  const revBy=ch=>{const m={};D.cohorts.filter(r=>r.ch===ch&&isFinite(r.w0)).forEach(r=>m[r.d]=(m[r.d]||0)+r.w0);return m};
+  const instBy=ch=>{const m={};D.cohorts.filter(r=>r.ch===ch).forEach(r=>m[r.d]=(m[r.d]||0)+r.inst);return m};
+  const main=wa?'all':S.chan, sp=spendBy(main), rv=revBy(main), ins=instBy(main);
+  const split=wa&&S.w0split?['meta','google','asa']:[];
+  const extra=split.map(c=>({c,sp:spendBy(c),rv:revBy(c)}));
+  const rows=dates.map(d=>{const o={date:d,inst:ins[d]||0,spend:sp[d]||0,rev:rv[d]||0};o.roas=div(o.rev,o.spend);extra.forEach(x=>{o['roas_'+x.c]=div(x.rv[d]||0,x.sp[d]||0);o['rev_'+x.c]=x.rv[d]||0;o['spend_'+x.c]=x.sp[d]||0});return o});
+  return {rows,dates,split,main};
+}
+function renderW0(chartEl,tableEl){
+  const m=w0Model(); const card=chartEl.closest('.card');
+  const tg=card&&card.querySelector('.w0split'); if(tg){tg.style.display=S.chan==='all'?'':'none';const i=tg.querySelector('input');i.checked=S.w0split;i.onchange=()=>{S.w0split=i.checked;LS.set('yk_w0split',S.w0split?'1':'0');render()}}
+  if(!m){chartEl.innerHTML='<div class="empty">No finished install-day cohorts in this window yet.</div>'; if(tableEl)tableEl.innerHTML=''; return;}
+  const SPLIT=['var(--c4)','var(--c2)','var(--c3)'], col=k=>m.rows.map(r=>r[k]);
+  const series=[{name:m.main==='all'?'Total':CH[m.main].name,color:'var(--c1)',values:col('roas'),num:col('rev'),den:col('spend')}];
+  m.split.forEach((c,i)=>series.push({name:CH[c].name,color:SPLIT[i],values:col('roas_'+c),num:col('rev_'+c),den:col('spend_'+c)}));
+  timeChart(chartEl,{dates:m.dates,type:'line',fmt:fX,series});
+  if(tableEl){
+    const keys=['inst','spend','rev',...m.split.flatMap(c=>['rev_'+c,'spend_'+c])];
+    const rows=bucketRows(m.rows,'date',keys,o=>{o.roas=div(o.rev,o.spend);m.split.forEach(c=>o['roas_'+c]=div(o['rev_'+c],o['spend_'+c]))});
+    table(tableEl,'w0',[{k:'date',label:S.gran==='week'?'Install week':'Install day',txt:true},{k:'inst',label:'Installs',fmt:fK,tot:d=>sumK(d,'inst')},{k:'spend',label:'Spend',fmt:fUsd,tot:d=>sumK(d,'spend')},{k:'rev',label:'W0 revenue',fmt:fUsd,tot:d=>sumK(d,'rev')},{k:'roas',label:'W0 ROAS',fmt:fX,tot:d=>div(sumK(d,'rev'),sumK(d,'spend'))},
+      ...m.split.map(c=>({k:'roas_'+c,label:CH[c].name+' W0 ROAS',fmt:fX,tot:d=>div(sumK(d,'rev_'+c),sumK(d,'spend_'+c))}))],rows,{search:false});
+  }
+}
+const w0Card=(id)=>`<div class="card"><div class="hd"><div><h3 data-srcid="${id}">W0 ROAS by install ${S.gran==='week'?'week':'day'}</h3></div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="legend w0lg"></div><label class="switch w0split"><input type="checkbox"> Split by channel</label></div></div><div id="${id}" class="chart"></div></div>`;
+const COLS=[0,1,3,7,14,21,30];
+/** cohort rows by start day. A cell is empty only while unfinished: install/trial day + n days is after the last data day. */
+function cohortModel(){
+  const size={};D.size.forEach(r=>size[r.d]=r.n);
+  const spendBy={};D.fact.filter(chanOk).forEach(r=>spendBy[r.date]=(spendBy[r.date]||0)+r.spend);
+  const by={};D.coh.forEach(r=>{(by[r.d]||(by[r.d]={}))[r.n]=r});
+  const lastDay=S.dataEnd, ageOf=d=>Math.round((new Date(lastDay+'T00:00:00Z')-new Date(d+'T00:00:00Z'))/864e5);
+  const starts=[...new Set([...Object.keys(by),...Object.keys(size)])].filter(d=>d<=lastDay).sort().reverse();
+  let rows=starts.map(d=>{const days=by[d]||{},sz=size[d]||(days[0]?days[0].act:0),maxDay=Math.max(0,ageOf(d));let cum=0,cumT=0;const cumRev={},act={},cumTr={};
+    for(let n=0;n<=maxDay;n++){const x=days[n];cum+=x?x.rev:0;cumT+=x?x.tr:0;cumRev[n]=cum;cumTr[n]=cumT;act[n]=x?x.act:0;}
+    return {d,label:d,size:sz,spend:spendBy[d]||0,cumRev,act,cumTr,maxDay}});
+  if(S.gran==='week'){  // weekly cohorts: sum the daily cohorts; a week's cell is finished only when its youngest day is
+    const m=new Map(); rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:'Week of '+k,size:0,spend:0,cumRev:{},act:{},cumTr:{},maxDay:Infinity};m.set(k,o)}
+      o.size+=r.size;o.spend+=r.spend;o.maxDay=Math.min(o.maxDay,r.maxDay);for(let n=0;n<=r.maxDay;n++){o.cumRev[n]=(o.cumRev[n]||0)+r.cumRev[n];o.act[n]=(o.act[n]||0)+r.act[n];o.cumTr[n]=(o.cumTr[n]||0)+r.cumTr[n];}});
+    rows=[...m.values()];
+  }
+  rows.forEach(r=>{r.ret={};for(let n=0;n<=r.maxDay;n++)r.ret[n]=div(r.act[n],r.size)});
+  return rows;
+}
+VIEWS.cohorts=()=>{const t=D.anchor==='trial', u=t?'trial starter':'install', ev=t?'trial start':'install';
+ return w0Card('k_w0')+`<h2 data-srcid="k_w0">W0 by install ${S.gran==='week'?'week':'day'}</h2><div id="k_w0t"></div><h2>${t?'Trial-start':'Install'} cohorts</h2>`+
+ `<div class="grid c2">${card('LTV curve','',null,'k_ltv')}${card(`ROAS by day since ${ev}`,'',null,'k_roas')}</div>
+ <h2 data-srcid="k_h1">LTV per ${u}</h2><div id="k_h1"></div><h2 data-srcid="k_h2">Cohort ROAS</h2><div id="k_h2"></div>${t?'':`<h2 data-srcid="k_h3">Retention</h2><div id="k_h3"></div><h2 data-srcid="k_h4">Trial start rate</h2><div id="k_h4"></div>`}`};
+VIEWS.cohorts.after=()=>{
+  renderW0($('#k_w0'),$('#k_w0t'));
+  const rows=cohortModel(), w=win(S.dataEnd), rr=rows.filter(r=>r.d>=(S.gran==='week'?monday(w.from):w.from)&&r.d<=w.to);
+  if(!rr.length){['k_ltv','k_roas'].forEach(i=>$('#'+i).innerHTML='<div class="empty">No cohort data</div>');['k_h1','k_h2','k_h3','k_h4'].forEach(i=>{if($('#'+i))$('#'+i).innerHTML='<div class="empty">No cohort data</div>'});return;}
+  const days=[...Array(31).keys()];
+  const ltv=days.map(n=>{const e=rr.filter(r=>r.maxDay>=n&&r.size>0);return e.length?e.reduce((s,r)=>s+r.cumRev[n],0)/sumK(e,'size'):NaN});
+  const roas=days.map(n=>{const e=rr.filter(r=>r.maxDay>=n&&r.spend>0);return e.length?e.reduce((s,r)=>s+r.cumRev[n],0)/sumK(e,'spend'):NaN});
+  const dx=days.map(n=>'D'+n);
+  timeChart($('#k_ltv'),{dates:dx,type:'area',fmt:fUsd2,noBucket:true,series:[{name:'LTV',color:'var(--c1)',values:ltv}]});
+  timeChart($('#k_roas'),{dates:dx,type:'line',fmt:fX,noBucket:true,series:[{name:'ROAS',color:'var(--c1)',values:roas}]});
+  // cells are empty only while unfinished; a day with no spend has no ROAS ("–")
+  heat($('#k_h1'),{rows:rr,cols:COLS,get:(r,n)=>r.maxDay>=n?(r.size>0?r.cumRev[n]/r.size:0):NaN,fmt:fUsd2});
+  heat($('#k_h2'),{rows:rr,cols:COLS,get:(r,n)=>r.maxDay>=n?(r.spend>0?r.cumRev[n]/r.spend:'nospend'):NaN,fmt:fX,scale:1.2});
+  if($('#k_h3'))heat($('#k_h3'),{rows:rr,cols:COLS,get:(r,n)=>r.maxDay>=n?r.ret[n]:NaN,fmt:fPct});
+  if($('#k_h4'))heat($('#k_h4'),{rows:rr,cols:COLS,get:(r,n)=>r.maxDay>=n&&r.size>0?r.cumTr[n]/r.size:NaN,fmt:fPct});
+};
+VIEWS.subs=()=>`<div id="s_k" class="grid kpis"></div>
+ <h2>Still active</h2><div class="grid c2">${card('Trials','',null,'s_atr',legendFor())}${card('Subscriptions','',null,'s_act',legendFor())}</div>
+ <h2>Recurring revenue</h2><div class="grid c2">${card('MRR','',null,'s_mrr')}${card('Net revenue','',null,'s_rev')}</div>
+ <h2>Trials & subscribers</h2><div class="grid c2">${card('New trials vs new subscriptions','',null,'s_tr',legendFor())}${card('Still active trials & subs','',null,'s_still',legendFor())}</div>
+ <h2>Trial → paid</h2><div class="grid c2">${card('Trial → paid conversion','',null,'s_conv')}${card('Refunds','',null,'s_ref')}</div>`;
+VIEWS.subs.after=()=>{
+  // status metrics: always up to the latest day, never shifted by "Finished cohorts"
+  const sw=win(S.dataEnd), end=sw.to, from=sw.from;   // status: up to the latest day
+  const all=dayList(addDays(from,-7),end), dates=dayList(from,end);
+  const serAll=m=>{const o={};D.adapty.filter(r=>r.m===m).forEach(r=>o[r.date]=(o[r.date]||0)+r.v);return all.map(d=>o[d]!==undefined?o[d]:NaN)};
+  const cut=a=>a.slice(all.length-dates.length);
+  if(!D.adapty.length){$('#s_k').innerHTML=`<div class="card empty" style="grid-column:1/-1">No Adapty data yet.</div>`;}
+  const last=a=>{for(let i=a.length-1;i>=0;i--)if(isFinite(a[i]))return a[i];return NaN};
+  const sumBack=(a,i,n)=>{let t=0;for(let j=Math.max(0,i-n+1);j<=i;j++)t+=isFinite(a[j])?a[j]:0;return t};
+  const hasNet=D.adapty.some(r=>r.m==='revenue_net');
+  const actA=serAll('subscriptions_active'), atrA=serAll('trials_active'), canS=serAll('subscriptions_renewal_cancelled'), canT=serAll('trials_renewal_cancelled');
+  const actOnA=actA.map((v,i)=>isFinite(v)?Math.max(0,v-sumBack(canS,i,7)):NaN), atrOnA=atrA.map((v,i)=>isFinite(v)?Math.max(0,v-sumBack(canT,i,3)):NaN);
+  const act=cut(actA),atr=cut(atrA),actOn=cut(actOnA),atrOn=cut(atrOnA);
+  const mrr=cut(serAll('mrr')),arr=cut(serAll('arr')),rev=cut(serAll(hasNet?'revenue_net':'revenue')),tr=cut(serAll('trials_new')),sub=cut(serAll('subscriptions_new')),ref=cut(serAll('refund_money')),cs=cut(canS),ct=cut(canT);
+  const s=a=>a.reduce((x,y)=>x+(isFinite(y)?y:0),0);
+  if(D.adapty.length)$('#s_k').innerHTML=
+    kpi('Still Active Subs',fK(last(actOn)),0,null,{hero:true,extra:`of ${fK(last(act))}`})+kpi('Still Active Trials',fK(last(atrOn)),0,null,{extra:`of ${fK(last(atr))}`})+
+    kpi('MRR',fUsd(last(mrr)),0,null)+kpi('ARR',fUsd(last(arr)),0,null)+kpi('Net revenue',fUsd(s(rev)),0,null)+kpi('New trials',fK(s(tr)),0,null)+kpi('Trial → paid',fPct(div(s(sub),s(tr))),0,null)+kpi('Refunds',fUsd(s(ref)),0,null);
+  timeChart($('#s_atr'),{dates,type:'line',fmt:fK,series:[{name:'Still Active Trials',color:'var(--c1)',values:atrOn,agg:'last'},{name:'Active trials',color:'var(--c2)',values:atr,agg:'last'}]});
+  timeChart($('#s_act'),{dates,type:'line',fmt:fK,series:[{name:'Still Active Subs',color:'var(--c1)',values:actOn,agg:'last'},{name:'Active subs',color:'var(--c2)',values:act,agg:'last'}]});
+  timeChart($('#s_mrr'),{dates,type:'area',fmt:fUsd,series:[{name:'MRR',color:'var(--c1)',values:mrr,agg:'last'}]});
+  timeChart($('#s_rev'),{dates,type:'bar',fmt:fUsd,series:[{name:'Net revenue',color:'var(--c1)',values:rev}]});
+  timeChart($('#s_tr'),{dates,type:'bar',fmt:fK,series:[{name:'New trials',color:'var(--c3)',values:tr},{name:'New subscriptions',color:'var(--c1)',values:sub}]});
+  timeChart($('#s_still'),{dates,type:'line',fmt:fK,series:[{name:'Still Active Subs',color:'var(--c1)',values:actOn,agg:'last'},{name:'Still Active Trials',color:'var(--c2)',values:atrOn,agg:'last'}]});
+  const roll=(a,b)=>a.map((_,i)=>{let x=0,y=0;for(let j=Math.max(0,i-6);j<=i;j++){x+=isFinite(a[j])?a[j]:0;y+=isFinite(b[j])?b[j]:0}return y>0?x/y:NaN});
+  timeChart($('#s_conv'),{dates,type:'line',fmt:fPct,series:[{name:'Trial→paid',color:'var(--c1)',values:roll(sub,tr),num:sub,den:tr}]});
+  timeChart($('#s_ref'),{dates,type:'bar',fmt:fUsd,series:[{name:'Refunds',color:'var(--c2)',values:ref}]});
+};
+VIEWS.sources=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_src">Data sources</h3></div>${EMBED?'':'<button class="btn" id="bConn">Connection</button>'}</div><div id="t_src"></div></div>
+ <h2 data-srcid="t_tabs">Sheet tabs</h2><div id="t_tabs"></div>`;
+VIEWS.sources.after=()=>{
+  const names={meta:'Meta Ads',google:'Google Ads',asa:'Apple Search Ads',appsflyer:'AppsFlyer',posthog:'PostHog',adapty:'Adapty',cohorts:'Adapty install cohorts'};
+  const rows=Object.keys(names).map(k=>{const s=D.src.find(x=>x.source===k)||{};return {name:names[k],status:s.status||'not pulled',rows:+s.rows||0,msg:s.message||'',at:s.pulled_at?new Date(s.pulled_at).toLocaleString():'–',sec:s.seconds===''||s.seconds==null?NaN:+s.seconds}});
+  table($('#t_src'),'src',[{k:'name',label:'Source',txt:true},{k:'status',label:'Status',txt:true,html:r=>`<span class="pill ${r.status==='ok'?'ok':r.status==='error'?'error':'skipped'}">${esc(r.status)}</span>`},{k:'rows',label:'Rows written',tot:d=>sumK(d,'rows'),fmt:f0},{k:'at',label:'Last pull',txt:true},{k:'sec',label:'Seconds',fmt:f0,tot:d=>sumK(d.filter(r=>isFinite(r.sec)),'sec')},{k:'msg',label:'Message',txt:true}],rows,{search:false});
+  const T=S.raw.tabs;
+  table($('#t_tabs'),'tabs',[{k:'tab',label:'Tab',txt:true},{k:'rows',label:'Rows',fmt:f0,tot:d=>sumK(d,'rows')},{k:'first',label:'First date',txt:true},{k:'last',label:'Last date',txt:true}],Object.keys(T).map(t=>{const ds=T[t].map(r=>String(r.date||r.install_date||'')).filter(Boolean).sort();return {tab:t,rows:T[t].length,first:ds[0]||'–',last:ds[ds.length-1]||'–'}}),{search:false});
+  const b=$('#bConn'); if(b) b.onclick=()=>{$('#sUrl').value=url()||'';$('#sKey').value=key()||'';$('#modal').classList.add('on')};
+};
+const TABS_UI=[['overview','Overview'],['subs','Subscriptions'],['channels','Channels'],['campaigns','Campaigns'],['adsets','Ad Sets'],['creatives','Creatives'],['users','Users & Funnel'],['cohorts','Cohorts & LTV']];
+const TITLES={...Object.fromEntries(TABS_UI),sources:'Data Sources'};
+/* where each page's numbers come from (shown when hovering a page, chart or table title) */
+const SOURCES={
+  overview:[['Spend, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['ROAS, W0','Adapty install cohorts'],['Net revenue, paid subs','Adapty'],['Payers','PostHog']],
+  subs:[['Everything','Adapty analytics']],
+  channels:[['Spend, impr., clicks, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer']],
+  campaigns:[['Spend, impr., clicks, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['W0','Adapty install cohorts']],
+  adsets:[['Spend, impr., clicks, installs','Meta, Google Ads'],['Trials','AppsFlyer']],
+  creatives:[['Ads, thumbnails, video views','Meta Ads']],
+  users:[['Users, DAU, trials, payers','PostHog'],['Paid installs','Meta, Google Ads, Apple Search Ads']],
+  cohorts:[['W0 ROAS','Adapty install cohorts + network spend'],['LTV, cohort ROAS, heatmaps','PostHog cohorts'],['Spend','Meta, Google Ads, Apple Search Ads']],
+  sources:[['Pull status','Google Sheet']],
+};
+const NET='Meta, Google Ads, Apple Search Ads', COH='Adapty install cohorts';
+const SRC={
+  ch_spend:[['Spend',NET]], ch_rev:[['W0 revenue, revenue to date',COH],['Spend',NET]], ch_inst:[['Installs',NET]], ch_cpi:[['Spend, installs',NET]],
+  ov_w0:[['W0 revenue',COH],['Spend',NET]], k_w0:[['W0 revenue',COH],['Spend',NET]],
+  t_chan:[['Spend, impr., clicks, installs',NET],['Trials','AppsFlyer'],['W0',COH]],
+  c_share:[['Spend',NET]], c_cpt:[['Spend',NET],['Trials','AppsFlyer']], c_ctr:[['Clicks, impressions',NET]], c_cpm:[['Spend, impressions',NET]],
+  t_daily:[['Spend, impr., clicks, installs',NET],['Trials','AppsFlyer']],
+  t_camp:[['Spend, impr., clicks, installs',NET],['Trials','AppsFlyer'],['W0',COH]], t_set:[['Spend, impr., clicks, installs','Meta, Google Ads'],['Trials','AppsFlyer']],
+  cgrid:[['Spend, views, thumbnails','Meta Ads']], t_cre:[['Spend, impr., clicks, installs, views','Meta Ads'],['Trials','AppsFlyer']],
+  u_funnel:[['Users, trials, payers','PostHog']], u_dau:[['DAU, new users','PostHog']], u_i2t:[['New users, trials','PostHog']], u_tp:[['Trials, payers','PostHog']],
+  k_ltv:[['Revenue, cohort size','PostHog cohorts']], k_roas:[['Revenue','PostHog cohorts'],['Spend',NET]],
+  k_h1:[['Revenue, cohort size','PostHog cohorts']], k_h2:[['Revenue','PostHog cohorts'],['Spend',NET]], k_h3:[['Active users','PostHog cohorts']], k_h4:[['Trials','PostHog cohorts']],
+  s_atr:[['Active trials, cancellations','Adapty']], s_act:[['Active subs, cancellations','Adapty']], s_mrr:[['MRR','Adapty']], s_rev:[['Net revenue','Adapty']],
+  s_tr:[['New trials, new subs','Adapty']], s_still:[['Active trials & subs, cancellations','Adapty']], s_conv:[['New trials, new subs','Adapty']], s_ref:[['Refunds','Adapty']],
+  t_src:[['Pull log','Google Sheet']], t_tabs:[['Rows per tab','Google Sheet']],
+};
+const srcPairs=k=>k.startsWith('page:')?SOURCES[k.slice(5)]:SRC[k];
+/* one hover handler for every element tagged data-srcid (page title, chart and table headers) */
+document.addEventListener('mousemove',e=>{const el=e.target.closest&&e.target.closest('[data-srcid]');
+  if(el){const pr=srcPairs(el.dataset.srcid)||[];tip.classList.add('src');showTip(e,`<div class="t">Data sources</div>`+pr.map(([a,b])=>`<div class="r"><span>${a}</span><b>${b}</b></div>`).join(''));}
+  else if(tip.classList.contains('src')){hideTip();tip.classList.remove('src');}});
+/* line icons (lucide-style, 24px grid) */
+const ICON={
+  overview:'<path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  channels:'<path d="M3 3v18h18"/><path d="M8 17v-4M13 17V7M18 17v-7"/>',
+  campaigns:'<path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/>',
+  adsets:'<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  creatives:'<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-4-4L6 21"/>',
+  users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+  cohorts:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  subs:'<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  sources:'<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+};
+const icon=k=>`<svg class="i" viewBox="0 0 24 24">${ICON[k]||''}</svg>`;
+function nav(){ $('#nav').innerHTML=TABS_UI.map(([k,l])=>`<button class="${S.tab===k?'on':''}" data-k="${k}" title="${l}">${icon(k)}<span>${l}</span></button>`).join('');
+  $('#nav').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(S.tab===b.dataset.k)return;S.tab=b.dataset.k;LS.set('yk_tab',S.tab);S.animate=true;render();window.scrollTo({top:0,behavior:'smooth'})}); }
+/* ---- date picker popover: presets + two-month range calendar */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const P={from:null,to:null,preset:null,view:null};
+const PRESETS=[['Last 7 days',7],['Last 14 days',14],['Last 30 days',30],['Last 60 days',60],['Last 90 days',90],['This month','tm'],['Last month','lm'],['All time',0]];
+function presetRange(k){const e=S.end;
+  if(k===0)return [S.dataStart,e];
+  if(k==='tm')return [e.slice(0,8)+'01',e];
+  if(k==='lm'){const first=e.slice(0,8)+'01',lmEnd=addDays(first,-1);return [lmEnd.slice(0,8)+'01',lmEnd];}
+  const f=addDays(e,-k+1);return [f<S.dataStart?S.dataStart:f,e];}
+function openPicker(anchor){
+  const w=win(); P.from=w.from;P.to=w.to;P.preset=S.custom?null:S.range;P.view=(w.to||S.end).slice(0,7);
+  if(P.view>S.dataStart.slice(0,7)){const [y,m]=P.view.split('-').map(Number);const d=new Date(Date.UTC(y,m-2,1));P.view=d.toISOString().slice(0,7);}
+  drawPicker();const dp=$('#dp');dp.classList.add('on');
+  const r=anchor.getBoundingClientRect(),W=dp.offsetWidth;dp.style.top=(r.bottom+10)+'px';dp.style.left=Math.max(12,Math.min(r.left,innerWidth-W-12))+'px';
+  setTimeout(()=>document.addEventListener('mousedown',closeOnOutside),0);}
+function closePicker(){$('#dp').classList.remove('on');document.removeEventListener('mousedown',closeOnOutside);}
+function closeOnOutside(e){if(!e.target.closest('#dp')&&!e.target.closest('button[data-v="pick"]'))closePicker();}
+addEventListener('keydown',e=>{if(e.key==='Escape')closePicker()});
+function monthGrid(ym){const [y,m]=ym.split('-').map(Number),first=new Date(Date.UTC(y,m-1,1)),lead=(first.getUTCDay()+6)%7,n=new Date(Date.UTC(y,m,0)).getUTCDate();
+  let h=['Mo','Tu','We','Th','Fr','Sa','Su'].map(d=>`<div class="dow">${d}</div>`).join('')+'<span></span>'.repeat(lead);
+  for(let i=1;i<=n;i++){const d=`${ym}-${String(i).padStart(2,'0')}`,dis=d<S.dataStart||d>S.dataEnd,to=P.to||P.from;
+    const c=[d===P.from?'start':'',d===to?'end':'',P.from&&to&&d>P.from&&d<to?'in':'',d===P.from&&to&&to>P.from?'in-r':'',d===to&&P.from&&to>P.from?'in-l':'',d===TODAY?'today':''].filter(Boolean).join(' ');
+    h+=`<button data-d="${d}" class="${c}" ${dis?'disabled':''}>${i}</button>`;}
+  return `<div class="cal">${h}</div>`;}
+function drawPicker(){
+  const [y,m]=P.view.split('-').map(Number),next=new Date(Date.UTC(y,m,1)).toISOString().slice(0,7);
+  const len=P.from&&P.to?daysBetween(P.from,P.to)+1:0;
+  $('#dp').innerHTML=`<div class="dp-pre">${PRESETS.map(([l,k])=>`<button data-p="${k}" class="${P.preset===k?'on':''}">${l}</button>`).join('')}</div>
+   <div class="dp-main"><div class="dp-head"><button class="round" data-nav="-1" title="Previous month"><svg class="i" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><b>${MONTHS[m-1]} ${y}</b><b>${MONTHS[+next.slice(5)-1]} ${next.slice(0,4)}</b><button class="round" data-nav="1" title="Next month"><svg class="i" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div>
+   <div class="dp-months">${monthGrid(P.view)}${monthGrid(next)}</div>
+   <div class="dp-foot"><span class="sub">${P.from?fmtDay(P.from)+' – '+(P.to?fmtDay(P.to)+` · ${len} days`:'pick an end date'):'Pick a start date'}</span><button class="btn" data-x="cancel">Cancel</button><button class="btn dark" data-x="apply" ${P.from&&P.to?'':'disabled'}>Apply</button></div></div>`;
+  const dp=$('#dp');
+  dp.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{const k=isNaN(+b.dataset.p)?b.dataset.p:+b.dataset.p;P.preset=k;[P.from,P.to]=presetRange(k);drawPicker();});
+  dp.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>{const [yy,mm]=P.view.split('-').map(Number);P.view=new Date(Date.UTC(yy,mm-1+(+b.dataset.nav),1)).toISOString().slice(0,7);drawPicker();});
+  dp.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const d=b.dataset.d;P.preset=null;if(!P.from||P.to){P.from=d;P.to=null}else if(d<P.from){P.from=d}else{P.to=d}drawPicker();});
+  dp.querySelector('[data-x="cancel"]').onclick=closePicker;
+  dp.querySelector('[data-x="apply"]').onclick=()=>{if(!P.from||!P.to)return;
+    if(typeof P.preset==='number'){S.range=P.preset;S.custom=null;}else{S.custom={from:P.from,to:P.to};}
+    closePicker();S.animate=true;render();};
+}
+/* segmented pill controls with a sliding thumb */
+const SEGS={segGran:{key:'gran',opts:[['day','Daily'],['week','Weekly']]},segRange:{key:'range',opts:[[7,'7D'],[30,'30D'],[0,'All'],['pick','']]},segOs:{key:'os',opts:[['all','All OS'],['ios','iOS'],['android','Android']]},segChan:{key:'chan',opts:[['all','All'],['meta','Meta'],['google','Google'],['asa','ASA']]}};
+function segs(){ Object.entries(SEGS).forEach(([id,cfg])=>{const el=$('#'+id); if(!el)return;
+  if(!el.dataset.ready){el.innerHTML='<span class="thumb"></span>'+cfg.opts.map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');el.dataset.ready=1;
+    el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+      if(b.dataset.v==='pick'){openPicker(el);return;}
+      const v=cfg.key==='range'?+b.dataset.v:b.dataset.v; if(S[cfg.key]===v&&!(cfg.key==='range'&&S.custom))return;
+      S[cfg.key]=v; if(cfg.key==='range')S.custom=null; if(cfg.key==='os')LS.set('yk_os',v); if(cfg.key==='gran')LS.set('yk_gran',v); S.animate=true; render();});}
+  const cur=cfg.key==='range'?(S.custom||![7,30,0].includes(S.range)?'pick':String(S.range)):String(S[cfg.key]);
+  el.querySelectorAll('button').forEach(b=>b.classList.toggle('on',cur===b.dataset.v));
+  const pk=el.querySelector('button[data-v="pick"]'); if(pk){pk.classList.add('pick');pk.title='Pick dates';
+    const lbl=S.custom?`${fmtDay(S.custom.from)} – ${fmtDay(S.custom.to)}`:![7,30,0].includes(S.range)?`${S.range}D`:'';
+    pk.innerHTML='<svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'+(lbl?`<span>${lbl}</span>`:'');}
+});
+  requestAnimationFrame(placeThumbs);}
+/** slide each segment's thumb under its active button (re-run after layout / font load) */
+function placeThumbs(){document.querySelectorAll('.seg').forEach(el=>{const on=el.querySelector('button.on'),th=el.querySelector('.thumb'); if(on&&th){th.style.width=on.offsetWidth+'px';th.style.height=on.offsetHeight+'px';th.style.top=on.offsetTop+'px';th.style.transform=`translateX(${on.offsetLeft}px)`;}});}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>placeThumbs());
+const fmtDay=d=>{const x=new Date(d+'T00:00:00Z');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'})};
+function render(){
+  if(!S.raw)return; nav(); build(); segs();
+  const tl=TITLES[S.tab]||'';
+  const h=$('#pageTitle'); if(h.textContent!==tl){h.textContent=tl;h.classList.remove('title-anim');void h.offsetWidth;h.classList.add('title-anim');}
+  h.dataset.srcid='page:'+S.tab;
+  const hasAny=Object.values(S.raw.tabs).some(t=>t.length>1);
+  const last=(D.src||[]).map(r=>String(r.pulled_at||'')).filter(Boolean).sort().pop();
+  const lastDay=last?new Date(new Date(last).getTime()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10):null;
+  const isStale=!S.demo&&(!lastDay||lastDay<TODAY);
+  const stale=isStale?`<div class="banner stale"><b>Data not updated today.</b> Last pull ${last?new Date(last).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'never'}.<button class="mini" onclick="document.getElementById('bPull').click()">Pull Live Data</button></div>`:'';
+  const fr=$('#fresh'); fr.classList.toggle('stale',isStale); fr.querySelector('span').textContent=S.demo?'Demo data':last?`Updated ${lastDay===TODAY?'today':fmtDay(lastDay)} ${new Date(last).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`:'Never pulled';
+  const osNote='';
+  $('#main').innerHTML=stale+osNote+(S.demo?`<div class="banner"><b>Demo data.</b> Connect your Google Sheet web app with ⚙ (or hard-code it in <code>CONFIG</code>), then press <b>Pull Live Data</b>. Charts below show generated sample numbers.</div>`:(!hasAny?`<div class="banner"><b>The sheet is empty.</b> Press <b>Pull Live Data</b> after saving your keys in the sheet menu <i>YK Dashboard → Setup keys</i>.</div>`:''))+VIEWS[S.tab]();
+  VIEWS[S.tab].after&&VIEWS[S.tab].after();
+  // entrance motion only on navigation / filter changes, not on resize or hover re-renders
+  const mn=$('#main'); mn.classList.remove('anim'); clearTimeout(mn._t);
+  if(S.animate){void mn.offsetWidth;mn.classList.add('anim');S.animate=false;
+    // fail-safe: if a browser pauses CSS animations (in-app browsers, background tabs), content must not stay hidden
+    mn._t=setTimeout(()=>mn.classList.remove('anim'),1400);}
+}
+$('#fFin').checked=S.finished;
+$('#fFin').addEventListener('change',()=>{S.finished=$('#fFin').checked;LS.set('yk_fin',S.finished?'1':'0');S.animate=true;render()});
+$('#fCmp').checked=S.compare;
+$('#fCmp').addEventListener('change',()=>{S.compare=$('#fCmp').checked;LS.set('yk_cmp',S.compare?'1':'0');render()});
+addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(render,150)});
+
+/* ============================================================ load / pull */
+const EMBED=window.__YK_EMBED||null;
+const url=()=>EMBED?'embedded':(LS.get('yk_url')||CONFIG.webAppUrl), key=()=>{const m=location.hash.match(/[#&]k=([A-Za-z0-9_-]+)/);return m?m[1]:(LS.get('yk_key')||CONFIG.key)};
+function toast(msg,ms=6000){const t=$('#toast');t.innerHTML=msg;t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',ms)}
+async function call(params){
+  // served from the Apps Script link: talk to the script directly (no CORS, key from the link)
+  if(EMBED) return new Promise((res,rej)=>google.script.run.withSuccessHandler(s=>{const j=JSON.parse(s); j.error?rej(new Error(j.error)):res(j)}).withFailureHandler(rej).api({...params,key:EMBED.key}));
+  const q=new URLSearchParams({...(key()?{key:key()}:{}),format:'json',...params}); const r=await fetch(url()+'?'+q,{redirect:'follow'}); const j=await r.json(); if(j.error)throw new Error(j.error); return j; }
+/** the script sends each tab compactly as {h:[headers], r:[rows]}; expand to objects */
+function inflate(j){ if(j&&j.tabs) Object.keys(j.tabs).forEach(k=>{const t=j.tabs[k]; if(t&&!Array.isArray(t)&&t.h) j.tabs[k]=t.r.map(r=>{const o={}; t.h.forEach((h,i)=>o[h]=r[i]); return o;});}); return j; }
+function setData(j,demoFlag){ const first=!S.raw; S.raw=inflate(j); S.demo=demoFlag; S.animate=first; S.app='all'; render(); }
+/* stale-while-revalidate: show the last data this browser saw at once, then swap in fresh data */
+const CACHE_KEY='yk_payload_v1';
+async function load(){
+  if(!url()){setData(demo(),true);return;}
+  if(!EMBED&&!key()){$('#main').innerHTML='<div class="empty" style="padding:90px 20px">This link is missing its access key.</div>';return;}
+  let shown=false;
+  if(!EMBED){const c=LS.get(CACHE_KEY); if(c){try{setData(JSON.parse(c),false);shown=true;}catch(e){}}}
+  try{ const fresh=await call({}); if(!EMBED){try{localStorage.setItem(CACHE_KEY,JSON.stringify(fresh))}catch(e){}}
+    const keepTab=S.tab; setData(fresh,false); if(shown){S.tab=keepTab;} }
+  catch(e){ if(!shown){toast('Could not load the data: '+esc(e.message)); setData(demo(),true);} }
+}
+$('#bPull').onclick=async()=>{
+  const b=$('#bPull'); if(b.disabled)return; b.disabled=true;b.classList.add('busy');$('#pullTxt').textContent='Pulling…';
+  try{
+    if(!url()){ await new Promise(r=>setTimeout(r,1200)); toast('Demo mode: no web app URL set. Open ⚙ to connect your sheet.'); }
+    else{ const j=await call({action:'pull',what:'all'}); if(!EMBED){try{localStorage.setItem(CACHE_KEY,JSON.stringify(j))}catch(e){}} setData(j,false);
+      toast((j.pull||[]).map(s=>`<div><span class="pill ${s.status}">${s.status}</span> <b>${s.source}</b> ${s.status==='ok'?s.rows+' rows':esc(s.message)}</div>`).join(''),12000); }
+  }catch(e){ toast('Pull failed: '+esc(e.message),9000); }
+  b.disabled=false;b.classList.remove('busy');$('#pullTxt').textContent='Pull Live Data';
+};
+$('#bSet').onclick=()=>{S.tab='sources';LS.set('yk_tab','sources');S.animate=true;render();window.scrollTo({top:0,behavior:'smooth'})};
+$('#sCancel').onclick=()=>$('#modal').classList.remove('on');
+$('#sSave').onclick=()=>{LS.set('yk_url',$('#sUrl').value.trim());LS.set('yk_key',$('#sKey').value.trim());$('#modal').classList.remove('on');load()};
+$('#bTheme').onclick=()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;r.dataset.theme=dark?'light':'dark';LS.set('yk_theme',r.dataset.theme);render()};
+{const t=LS.get('yk_theme');if(t)document.documentElement.dataset.theme=t}
+load();
+</script>
+</body>
+</html>
