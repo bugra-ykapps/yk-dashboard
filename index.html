@@ -124,6 +124,11 @@ h1{font:700 46px/1 "Inter Tight",Inter,sans-serif;letter-spacing:-.035em;margin:
 
 /* ===================================================================== cards + layout */
 #main{min-height:60vh}
+/* one vertical rhythm: blocks that follow each other without a section title get the grid gap */
+#main>:not(h2)+:not(h2){margin-top:14px}
+.card .hd:has(.pillbar){align-items:center}
+.card .hd .pillbar{box-shadow:none;background:var(--card-2);padding:3px}
+.card .hd .pillbar .seg{background:transparent;padding:0}
 h2{font:600 17px/1.2 Inter,sans-serif;letter-spacing:-.01em;color:var(--ink);margin:30px 4px 14px}
 .grid{display:grid;gap:14px}
 .kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
@@ -218,8 +223,15 @@ td.name:has(.tw-wrap){max-width:420px}
 .cc{display:inline-block;min-width:26px;padding:1px 5px;margin-right:8px;border-radius:5px;background:var(--card-2);font-size:10.5px;font-weight:600;text-align:center;color:var(--ink-2)}
 td code{font-size:11.5px;color:var(--ink-2)}
 /* heatmap */
+.heat th{text-align:center;cursor:default}
+.heat th:first-child{text-align:left}
+.heat th.pre,.heat td.pre{text-align:right;padding-right:18px}
+.heat td.pre{background:transparent;border-left:0;font-weight:400}
+.heat tfoot td{border-radius:0;border-left:0;border-bottom:0;border-top:1px solid var(--ink);padding:12px 10px;background:var(--card)}
+.heat tfoot td.pre{padding-right:18px}
+.pid{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
 .heat td{padding:8px 10px;text-align:center;font-size:12px;min-width:58px;border-bottom:2px solid var(--card);border-left:2px solid var(--card);border-radius:8px;transition:transform .15s}
-.heat td:first-child{text-align:left;font-weight:500;background:var(--card);border-left:0}
+.heat td:first-child{text-align:left;font-weight:500;background:var(--card);border-left:0;padding-left:22px}
 
 /* ===================================================================== creatives: dark preview cards */
 .crow{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
@@ -532,7 +544,8 @@ function demo(){
 const tip=$('#tip');
 function showTip(e,html){ tip.innerHTML=html; tip.style.display='block'; const w=tip.offsetWidth,h=tip.offsetHeight; let x=e.clientX+14,y=e.clientY+14; if(x+w>innerWidth-8)x=e.clientX-w-14; if(y+h>innerHeight-8)y=e.clientY-h-14; tip.style.left=x+'px'; tip.style.top=y+'px'; }
 const hideTip=()=>tip.style.display='none';
-const niceMax=v=>{if(!(v>0))return 1;const p=Math.pow(10,Math.floor(Math.log10(v))),m=v/p;return(m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*p};
+/** axis top = 4 × a round step, so every gridline label is a round number (0, 6, 12, 18, 24 rather than 6.25 steps) */
+const niceMax=v=>{if(!(v>0))return 1;const raw=v/4,p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p;return [1,2,3,4,5,6,8,10].find(x=>x>=m-1e-9)*p*4};
 const swatch=(i)=>i.line?`<svg viewBox="0 0 20 8"><line x1="1" y1="4" x2="19" y2="4" stroke="${i.color}" stroke-width="2" stroke-linecap="round" ${i.dash?`stroke-dasharray="${i.dash}"`:''}/></svg>`:`<i style="background:${i.color}"></i>`;
 const legend=items=>`<div class="legend">${items.map(i=>`<span>${swatch(i)}${esc(i.name)}</span>`).join('')}</div>`;
 
@@ -742,7 +755,7 @@ function treeTable(el,id,cols,roots){
   const top=roots.filter(match).sort(cmp); let body='';
   const cell=(c,r)=>c.html?c.html(r):c.txt?esc(r[c.k]??''):(c.fmt||f0)(r[c.k]);
   const walk=(n,depth,path)=>{const key=id+path+'/'+n.row.name, has=n.kids.length>0, on=open.has(key);
-    body+=`<tr class="tree l${depth}">${cols.map((c,i)=>i===0?`<td class="txt name" title="${esc(n.row.name)}"><span class="tw-wrap" style="padding-left:${depth*20}px">${has?`<button class="tw${on?' on':''}" data-o="${esc(key)}" aria-label="Expand"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`:'<span class="tw-sp"></span>'}<span class="tw-n">${cell(c,n.row)}</span></span></td>`:`<td>${cell(c,n.row)}</td>`).join('')}</tr>`;
+    body+=`<tr class="tree l${depth}">${cols.map((c,i)=>i===0?`<td class="txt name" title="${esc(n.row.name)}"><span class="tw-wrap" style="padding-left:${depth*30}px">${has?`<button class="tw${on?' on':''}" data-o="${esc(key)}" aria-label="Expand"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`:'<span class="tw-sp"></span>'}<span class="tw-n">${cell(c,n.row)}</span></span></td>`:`<td>${cell(c,n.row)}</td>`).join('')}</tr>`;
     if(has&&on)[...n.kids].sort(cmp).forEach(k=>walk(k,depth+1,path+'/'+n.row.name));};
   top.forEach(n=>walk(n,0,''));
   const data=top.map(n=>n.row);
@@ -941,10 +954,10 @@ VIEWS.actives.after=()=>{
   if(!S.sort.act)S.sort.act={k:'next',asc:true};
   table($('#a_act'),'act',[{k:'type',label:'Type',txt:true},{k:'cc',label:'Geo',txt:true,html:r=>geoCell(r.cc)},{k:'net',label:'Net USD',fmt:fUsd2,tot:d=>sumK(d,'net')},{k:'renew',label:'Total renew',fmt:f0,tot:d=>sumK(d,'renew')},
     {k:'first',label:'First time',html:r=>relCell(r.first)},{k:'last',label:'Last time',html:r=>relCell(r.last)},{k:'cur',label:'Current',txt:true,html:r=>`<span class="pill ${r.cur==='Renewing'?'ok':r.cur==='Cancelled'?'skipped':'error'}">${r.cur}</span>`},
-    {k:'next',label:'Next time',html:r=>relCell(r.next)},{k:'pid',label:'Person ID',txt:true,html:r=>`<code>${esc(r.pid)}</code>`}],rows,{totalLabel:`Total (${rows.length})`});
+    {k:'next',label:'Next time',html:r=>relCell(r.next)},{k:'pid',label:'Person ID',txt:true,html:r=>`<span class="pid" title="${esc(r.pid)}">${esc(r.pid)}</span>`}],rows,{totalLabel:`Total (${rows.length})`});
   const tr=trials.filter(x=>x.s.renewing).map(({p,s})=>({pid:p.pid,date:p.trialT,cc:p.cc,conv:s.exp,left:(s.exp-now)/864e5}));
   if(!S.sort.atr)S.sort.atr={k:'left',asc:true};
-  table($('#a_tr'),'atr',[{k:'pid',label:'ID',txt:true,html:r=>`<code>${esc(r.pid)}</code>`},{k:'date',label:'Trial date',html:r=>relCell(r.date)},{k:'cc',label:'Country',txt:true,html:r=>geoCell(r.cc)},
+  table($('#a_tr'),'atr',[{k:'pid',label:'ID',txt:true,html:r=>`<span class="pid" title="${esc(r.pid)}">${esc(r.pid)}</span>`},{k:'date',label:'Trial date',html:r=>relCell(r.date)},{k:'cc',label:'Country',txt:true,html:r=>geoCell(r.cc)},
     {k:'conv',label:'Trial convert date',html:r=>relCell(r.conv)},{k:'left',label:'Days left',fmt:v=>isFinite(v)?v.toFixed(1):'–'}],tr,{totalLabel:`Total (${tr.length})`});
 };
 
@@ -954,8 +967,8 @@ function heatT(el,{rows,first='Install date',pre=[],cols,fmt,scale,tot}){
   if(!rows.length){el.innerHTML='<div class="empty">No cohort data yet — press Pull Live Data</div>';return;}
   const vals=rows.flatMap(r=>cols.map(c=>c.get(r))).filter(v=>typeof v==='number'&&isFinite(v)), mx=scale||Math.max(...vals,1e-9);
   const td=(v,lab,c)=>{if(v==='nospend')return '<td style="color:var(--muted);background:var(--card-2)">–</td>';if(!isFinite(v))return '<td></td>';const k=Math.min(1,v/mx),pct=Math.round(6+k*84);
-    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${esc(lab)} · ${c.label}: ${fmt(v)}">${fmt(v)}</td>`};
-  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>${first}</th>${pre.map(p=>`<th style="cursor:default">${p.label}</th>`).join('')}${cols.map(c=>`<th style="cursor:default;text-align:center">${c.label}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${r.label}</td>${pre.map(p=>`<td>${p.fmt(p.get(r))}</td>`).join('')}${cols.map(c=>td(c.get(r),r.label,c)).join('')}</tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot.label||'Total'}</td>${pre.map(p=>`<td>${p.tot?p.fmt(p.tot(rows)):''}</td>`).join('')}${cols.map(c=>{const v=c.tot?c.tot(rows):NaN;return `<td style="text-align:center">${isFinite(v)?fmt(v):''}</td>`}).join('')}</tr></tfoot>`:''}</table></div>`;
+    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${esc(String(lab).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim())} · ${c.label}: ${fmt(v)}">${fmt(v)}</td>`};
+  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>${first}</th>${pre.map(p=>`<th class="pre">${p.label}</th>`).join('')}${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${r.label}</td>${pre.map(p=>`<td class="pre">${p.fmt(p.get(r))}</td>`).join('')}${cols.map(c=>td(c.get(r),r.label,c)).join('')}</tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot.label||'Total'}</td>${pre.map(p=>`<td class="pre">${p.tot?p.fmt(p.tot(rows)):''}</td>`).join('')}${cols.map(c=>{const v=c.tot?c.tot(rows):NaN;return `<td>${isFinite(v)?fmt(v):''}</td>`}).join('')}</tr></tfoot>`:''}</table></div>`;
   el.querySelectorAll('[data-t]').forEach(n=>{n.onmousemove=e=>showTip(e,n.dataset.t);n.onmouseleave=hideTip});
 }
 /** group day rows into Monday weeks: sums numeric fields; a field is blank for the week if any day is blank (unfinished) */
@@ -1054,14 +1067,14 @@ VIEWS.geo.after=()=>{
     {k:'w0',label:'W0 revenue',fmt:fUsd,tot:d=>sumK(d.filter(r=>isFinite(r.w0)),'w0')},{k:'w0roas',label:'W0 ROAS',fmt:fX,tot:d=>{const x=d.filter(r=>isFinite(r.w0));return div(sumK(x,'w0'),sumK(x,'spendF'))}},
     {k:'d1',label:'D1 ret.',fmt:fPct,tot:d=>div(sumK(d,'rd1'),sumK(d,'ru'))},{k:'w1',label:'W1 ret.',fmt:fPct,tot:d=>div(sumK(d,'rw1'),sumK(d,'ruw'))}],rows);
   const shade=['var(--c1)','var(--c2)','var(--c3)','var(--c4)'];
-  hbar($('#g_spend'),rows.filter(r=>r.spend>0).sort((a,b)=>b.spend-a.spend).slice(0,10).map((r,i)=>({name:r.name,value:r.spend,color:i<3?shade[i]:'var(--c4)'})),fUsd);
-  hbar($('#g_rev'),rows.filter(r=>r.rev>0).sort((a,b)=>b.rev-a.rev).slice(0,10).map((r,i)=>({name:r.name,value:r.rev,color:i<3?shade[i]:'var(--c4)'})),fUsd);
+  hbar($('#g_spend'),rows.filter(r=>r.spend>0).sort((a,b)=>b.spend-a.spend).slice(0,10).map(r=>({name:r.name,value:r.spend,color:'var(--c1)'})),fUsd);
+  hbar($('#g_rev'),rows.filter(r=>r.rev>0).sort((a,b)=>b.rev-a.rev).slice(0,10).map(r=>({name:r.name,value:r.rev,color:'var(--c1)'})),fUsd);
   // W0 ROAS by install day for the top countries by spend (Adapty country cohorts ÷ network spend in that country)
   const top=rows.filter(r=>cohCc.has(r.cc)&&r.spendF>0).sort((a,b)=>b.spendF-a.spendF).slice(0,4);
   const dates=dayList(w.from,finishedTo(w.to));
   const spBy=cc=>{const m={};D.geo.filter(r=>!r.af&&r.cc===cc&&chanOk(r)).forEach(r=>m[r.date]=(m[r.date]||0)+r.spend);return dates.map(d=>m[d]||0)};
   const rvBy=cc=>{const m={};coh.filter(r=>r.camp===cc&&isFinite(r.w0)).forEach(r=>m[r.d]=(m[r.d]||0)+r.w0);return dates.map(d=>m[d]!==undefined?m[d]:NaN)};
-  if(wa&&top.length)timeChart($('#g_roas'),{dates,type:'line',fmt:fX,series:top.map((r,i)=>{const sp=spBy(r.cc),rv=rvBy(r.cc);return {name:r.name,color:shade[i],values:rv.map((v,j)=>sp[j]>0?v/sp[j]:NaN),num:rv,den:sp}})});
+  if(wa&&top.length)timeChart($('#g_roas'),{dates,type:'line',fmt:fX,series:top.map((r,i)=>{const sp=spBy(r.cc),rv=rvBy(r.cc);return {name:r.name,color:shade[i],values:rv.map((_,j)=>{let a=0,b=0;for(let k=Math.max(0,j-6);k<=j;k++){if(isFinite(rv[k])){a+=rv[k];b+=sp[k]}}return b>0?a/b:NaN}),num:rv,den:sp}})});
   else $('#g_roas').innerHTML=`<div class="empty">${wa?'No country cohorts yet — press Pull Live Data':'Country cohorts include every install: switch the channel filter to All'}</div>`;
   // LTV curve per install by country: cumulative revenue of finished cohorts ÷ their installs
   const topL=[...new Set(coh.map(r=>r.camp))].map(cc=>({cc,inst:sumK(coh.filter(r=>r.camp===cc&&inR(r.d,w.from,w.to)),'inst')})).sort((a,b)=>b.inst-a.inst).slice(0,4);
@@ -1069,7 +1082,7 @@ VIEWS.geo.after=()=>{
   timeChart($('#g_ltv'),{dates:RCOLS.map(c=>c[1]),type:'line',fmt:fUsd2,noBucket:true,series:topL.map((x,i)=>({name:cName(x.cc),color:shade[i],values:ltvCurve(coh.filter(r=>r.camp===x.cc&&inR(r.d,w.from,w.to)))}))});
   // retention by country (top 12 by users)
   const rc=new Map();ret.forEach(r=>{const o=rc.get(r.cc)||rc.set(r.cc,{cc:r.cc,label:cName(r.cc),rs:[]}).get(r.cc);o.rs.push(r)});
-  const rrows=[...rc.values()].map(o=>{const x={label:`${esc(o.cc)} · ${esc(o.label)}`,u:sumK(o.rs,'u')};RET_APP.forEach(([k,,end])=>{const f=o.rs.filter(r=>addDays(r.d,end)<TODAY);x[k]=f.length?div(sumK(f,k),sumK(f,'u')):NaN});return x}).sort((a,b)=>b.u-a.u).slice(0,12);
+  const rrows=[...rc.values()].map(o=>{const x={label:geoCell(o.cc),u:sumK(o.rs,'u')};RET_APP.forEach(([k,,end])=>{const f=o.rs.filter(r=>addDays(r.d,end)<TODAY);x[k]=f.length?div(sumK(f,k),sumK(f,'u')):NaN});return x}).sort((a,b)=>b.u-a.u).slice(0,12);
   heatT($('#g_ret'),{rows:rrows,first:'Country',fmt:fPct,pre:[{label:'Users',get:r=>r.u,fmt:fK}],cols:RET_APP.map(([k,l])=>({label:l,get:r=>r[k]}))});
 };
 VIEWS.sources=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_src">Data sources</h3></div>${EMBED?'':'<button class="btn" id="bConn">Connection</button>'}</div><div id="t_src"></div></div>
