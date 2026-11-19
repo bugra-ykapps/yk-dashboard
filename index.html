@@ -189,10 +189,9 @@ h2{font:600 17px/1.2 Inter,sans-serif;letter-spacing:-.01em;color:var(--ink);mar
 /* ===================================================================== tables */
 .tablewrap{overflow:auto;max-height:600px;border-radius:var(--r-lg);background:var(--card);box-shadow:var(--shadow)}
 table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-th,td{padding:12px 16px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th,td{padding:12px 13px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left;padding-left:22px}
 th:last-child,td:last-child{padding-right:22px}
-td.txt,th.txt{text-align:left}
 thead th{position:sticky;top:0;background:var(--card);color:var(--ink-2);font-weight:500;font-size:12px;cursor:pointer;user-select:none;z-index:1;padding-top:16px}
 thead th:hover{color:var(--ink)} th.sorted{color:var(--ink)} th.sorted::after{content:" ↓";opacity:.6} th.sorted.asc::after{content:" ↑"}
 tbody tr{transition:background .15s}
@@ -222,16 +221,21 @@ tr.tree.l1 td{background:color-mix(in srgb,var(--card-2) 50%,var(--card))} tr.tr
 td.name:has(.tw-wrap){max-width:420px}
 .cc{display:inline-block;min-width:26px;padding:1px 5px;margin-right:8px;border-radius:5px;background:var(--card-2);font-size:10.5px;font-weight:600;text-align:center;color:var(--ink-2)}
 td code{font-size:11.5px;color:var(--ink-2)}
-/* heatmap */
-.heat th{text-align:center;cursor:default}
-.heat th:first-child{text-align:left}
-.heat th.pre,.heat td.pre{text-align:right;padding-right:18px}
-.heat td.pre{background:transparent;border-left:0;font-weight:400}
-.heat tfoot td{border-radius:0;border-left:0;border-bottom:0;border-top:1px solid var(--ink);padding:12px 10px;background:var(--card)}
-.heat tfoot td.pre{padding-right:18px}
+/* heatmap: an inset grid of rounded cells with even 4px gaps, the label column only as wide as its text */
+.tablewrap:has(>.heat){padding:2px 14px 14px}
+.card .tablewrap:has(>.heat){margin:0 -10px -8px}
+table.heat{border-spacing:4px;font-size:12.5px}
+.heat th{text-align:center;cursor:default;border-bottom:0;padding:12px 10px 8px;font-size:12px}
+.heat th:first-child,.heat td:first-child{text-align:left;padding-left:10px;padding-right:28px;width:1%;white-space:nowrap}
+.heat td{padding:10px 12px;text-align:center;min-width:64px;border:0;border-radius:9px}
+.heat td:first-child{font-weight:500;background:transparent;border-radius:0}
+.heat th.pre,.heat td.pre{text-align:center;width:1%;padding-left:14px;padding-right:14px;min-width:0}
+.heat td.pre{background:transparent;font-weight:400;color:var(--ink-2)}
+.heat tbody tr:hover{background:transparent}
+.heat tbody tr:hover td:first-child{color:var(--ink)}
+.heat tfoot td{border:0;border-radius:9px;padding:10px 12px;background:var(--card-2);font-weight:600;position:static}
+.heat tfoot td:first-child,.heat tfoot td.pre{background:transparent;color:var(--ink)}
 .pid{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink-2)}
-.heat td{padding:8px 10px;text-align:center;font-size:12px;min-width:58px;border-bottom:2px solid var(--card);border-left:2px solid var(--card);border-radius:8px;transition:transform .15s}
-.heat td:first-child{text-align:left;font-weight:500;background:var(--card);border-left:0;padding-left:22px}
 
 /* ===================================================================== creatives: dark preview cards */
 .crow{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
@@ -379,6 +383,9 @@ const $ = (s,r=document)=>r.querySelector(s);
 const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ============================================================ formatting */
+/** ISO day → "11 Sep 26" (any other value passes through) */
+const isoDay=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v));
+const fmtD=v=>{if(!isoDay(v))return v;const x=new Date(v+'T00:00:00Z');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit',timeZone:'UTC'})};
 const f0 = n=>isFinite(n)?Math.round(n).toLocaleString('en-US'):'–';
 const fK = n=>!isFinite(n)?'–':Math.abs(n)>=1e6?(n/1e6).toFixed(2)+'M':Math.abs(n)>=1e4?(n/1e3).toFixed(1)+'k':f0(n);
 const fUsd = n=>!isFinite(n)?'–':(n<0?'-':'')+'$'+(Math.abs(n)>=1e4?fK(Math.abs(n)):Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0}));
@@ -594,7 +601,7 @@ function timeChart(el,opts){
   const y=v=>m.t+ih-(v-minV)/(maxV-minV||1)*ih, x=i=>m.l+(type==='bar'?(i+.5)/N*iw:(N===1?iw/2:i/(N-1)*iw));
   let g='', defs='';
   for(let t=0;t<=4;t++){const v=minV+(maxV-minV)*t/4; g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" ${t?'stroke-dasharray="2 4"':''}/><text class="ax" x="${m.l-10}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text>`;}
-  const step=Math.ceil(N/7); dates.forEach((d,i)=>{if(i%step===0||i===N-1&&N>1&&(N-1)%step>step/2)g+=`<text class="ax" x="${x(i)}" y="${H-6}" text-anchor="middle">${/^\d{4}-/.test(d)?d.slice(5):d}</text>`});
+  const fits=Math.max(2,Math.floor(iw/(isoDay(dates[0])?78:44))), step=Math.ceil(N/Math.min(7,fits)); dates.forEach((d,i)=>{if(i%step===0||i===N-1&&N>1&&(N-1)%step>step/2)g+=`<text class="ax" x="${x(i)}" y="${H-6}" text-anchor="${i===0&&N>1?'start':i===N-1&&N>1?'end':'middle'}">${fmtD(d)}</text>`});
   if(type==='bar'){
     const slot=iw/N, grouped=!stacked&&series.length>1, bw=Math.max(2,Math.min(26,slot*(grouped?.8:.62))), sw=grouped?bw/series.length:bw;
     g+='<g class="barg">';
@@ -618,7 +625,7 @@ function timeChart(el,opts){
   svg.querySelector('#hit').addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)/r.width*W-m.l; let i=Math.round(type==='bar'?px/iw*N-.5:px/iw*(N-1)); i=Math.max(0,Math.min(N-1,i));
     cx.setAttribute('x1',x(i));cx.setAttribute('x2',x(i));cx.style.display='';
     dots.innerHTML=isLine?series.filter(s=>isFinite(s.values[i])).map(s=>`<circle cx="${x(i)}" cy="${y(s.values[i])}" r="4.5" fill="var(--card)" stroke="${s.color}" stroke-width="2"/>`).join(''):'';
-    showTip(e,`<div class="t">${weekly?'Week of '+dates[i]:dates[i]}</div>`+series.map(s=>`<div class="r"><span><i style="background:${s.color}"></i>${esc(s.name)}</span><b>${isFinite(s.values[i])?fmt(s.values[i]):'–'}</b></div>`).join('')+(stacked&&series.length>1?`<div class="r" style="border-top:1px solid #333;margin-top:6px;padding-top:6px"><span>Total</span><b>${fmt(tot[i])}</b></div>`:''));});
+    showTip(e,`<div class="t">${fmtD(dates[i])}</div>`+series.map(s=>`<div class="r"><span><i style="background:${s.color}"></i>${esc(s.name)}</span><b>${isFinite(s.values[i])?fmt(s.values[i]):'–'}</b></div>`).join('')+(stacked&&series.length>1?`<div class="r" style="border-top:1px solid #333;margin-top:6px;padding-top:6px"><span>Total</span><b>${fmt(tot[i])}</b></div>`:''));});
   svg.querySelector('#hit').addEventListener('mouseleave',()=>{cx.style.display='none';dots.innerHTML='';hideTip()});
 }
 function hbar(el,items,fmt=fK){
@@ -634,8 +641,8 @@ function funnel(el,steps){ // steps [{name,value}]
 function heat(el,{rows,cols,get,fmt,scale}){
   if(!rows.length){el.innerHTML='<div class="empty">No cohort data yet — press Pull Live Data</div>';return;}
   const vals=rows.flatMap(r=>cols.map(c=>get(r,c))).filter(v=>typeof v==='number'&&isFinite(v)), mx=scale||Math.max(...vals,1e-9);
-  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>Install date</th>${cols.map(c=>`<th style="cursor:default;text-align:center">D${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${r.label}</td>${cols.map(c=>{const v=get(r,c);if(v==='nospend')return '<td style="color:var(--muted);background:var(--card-2)">–</td>';if(!isFinite(v))return '<td></td>';const k=Math.min(1,v/mx),pct=Math.round(6+k*84);
-    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${r.label} · D${c}: ${fmt(v)}">${fmt(v)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
+  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>Install date</th>${cols.map(c=>`<th style="cursor:default;text-align:center">D${c}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtD(r.label)}</td>${cols.map(c=>{const v=get(r,c);if(v==='nospend')return '<td style="color:var(--muted);background:var(--card-2)">–</td>';if(!isFinite(v))return '<td></td>';const k=Math.min(1,v/mx),pct=Math.round(6+k*84);
+    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${fmtD(r.label)} · D${c}: ${fmt(v)}">${fmt(v)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`;
   el.querySelectorAll('[data-t]').forEach(n=>{n.onmousemove=e=>showTip(e,n.dataset.t);n.onmouseleave=hideTip});
 }
 /** sortable table. cols:[{k,label,fmt,txt}] */
@@ -645,7 +652,7 @@ function table(el,id,cols,rows,{search=true,total=true,limit=300,totalLabel='Tot
   data.sort((a,b)=>{const x=a[st.k],y=b[st.k]; const r=(typeof x==='string')?String(x).localeCompare(y):((isFinite(x)?x:-Infinity)-(isFinite(y)?y:-Infinity)); return st.asc?r:-r});
   const shown=data.slice(0,limit);
   el.innerHTML=(search?`<div class="tbar"><input class="search" placeholder="Search…" value="${esc(S.search[id]||'')}" data-s><span class="sub">${data.length} rows${data.length>limit?` (top ${limit})`:''}</span></div>`:'')+
-   `<div class="tablewrap"><table><thead><tr>${cols.map(c=>`<th class="${c.txt?'txt':''} ${st.k===c.k?'sorted'+(st.asc?' asc':''):''}" data-k="${c.k}">${c.label}</th>`).join('')}</tr></thead><tbody>${shown.map(r=>`<tr>${cols.map(c=>`<td class="${c.txt?'txt name':''}" ${c.txt?`title="${esc(r[c.k])}"`:''}>${c.html?c.html(r):c.txt?esc(r[c.k]):(c.fmt||f0)(r[c.k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="empty">No rows</td></tr>`}</tbody>${total&&data.length?`<tfoot><tr>${cols.map((c,i)=>`<td class="${c.txt?'txt':''}">${i===0?totalLabel:c.tot?c.fmt(c.tot(data)):''}</td>`).join('')}</tr></tfoot>`:''}</table></div>`;
+   `<div class="tablewrap"><table><thead><tr>${cols.map(c=>`<th class="${c.txt?'txt':''} ${st.k===c.k?'sorted'+(st.asc?' asc':''):''}" data-k="${c.k}">${c.label}</th>`).join('')}</tr></thead><tbody>${shown.map(r=>`<tr>${cols.map(c=>`<td class="${c.txt?'txt name':''}" ${c.txt&&!isoDay(r[c.k])?`title="${esc(r[c.k])}"`:''}>${c.html?c.html(r):c.txt?esc(fmtD(r[c.k])):(c.fmt||f0)(r[c.k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${cols.length}" class="empty">No rows</td></tr>`}</tbody>${total&&data.length?`<tfoot><tr>${cols.map((c,i)=>`<td class="${c.txt?'txt':''}">${i===0?totalLabel:c.tot?c.fmt(c.tot(data)):''}</td>`).join('')}</tr></tfoot>`:''}</table></div>`;
   el.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k; st.asc=st.k===k?!st.asc:false; st.k=k; table(el,id,cols,rows,{search,total,limit,totalLabel})});
   const inp=el.querySelector('[data-s]'); if(inp)inp.oninput=()=>{S.search[id]=inp.value; const p=inp.selectionStart; table(el,id,cols,rows,{search,total,limit,totalLabel}); const n=el.querySelector('[data-s]'); n.focus(); n.setSelectionRange(p,p)};
 }
@@ -678,15 +685,19 @@ function adaptyAt(metric,day){const r=D.adapty.filter(x=>x.m===metric&&x.date<=d
 VIEWS.overview=()=>{
   const w=win(), c=period(w.from,w.to), p=w.pf?period(w.pf,w.pt):{};
   const r0=w0Roas(w.from,w.to), r0p=w.pf?w0Roas(w.pf,w.pt):NaN;
+  // Total ROAS = net revenue ÷ spend on every network (revenue can't be split by channel)
+  const allSpend=(a,b)=>D.fact.filter(r=>inR(r.date,a,b)).reduce((t,r)=>t+r.spend,0);
+  const tr=div(c.rev,allSpend(w.from,w.to)), trp=w.pf?div(p.rev,allSpend(w.pf,w.pt)):NaN;
   const sw=win(S.dataEnd), subsNow=adaptyAt('subscriptions_active',sw.to), subsPrev=sw.pf?adaptyAt('subscriptions_active',sw.pt):NaN;
   return `<div class="grid kpis">
    ${kpi('Spend',fUsd(c.spend),c.spend,p.spend)}
    ${kpi('Installs',fK(c.inst),c.inst,p.inst,{extra:fUsd2(c.cpi)})}
    ${kpi('Trials',fK(c.trial),c.trial,p.trial,{extra:fUsd2(div(c.spend,c.trial))})}
-   ${kpi('ROAS',fX(r0),r0,r0p,{hero:true,extra:fK(c.payers)+' payers'})}
+   ${kpi('Total ROAS',fX(tr),tr,trp,{hero:true,extra:fX(r0)+' W0'})}
    ${kpi('Net Revenue',fUsd(c.rev),c.rev,p.rev)}
    ${kpi('Paid subscriptions',fK(subsNow),subsNow,subsPrev)}</div>
    <h2>Return on ad spend</h2>${w0Card('ov_w0')}
+   <div class="card"><div class="hd"><div><h3 data-srcid="ov_cum">Cumulative spend vs revenue</h3></div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="legend"></div><div class="pillbar"><div class="seg" id="segRev"></div></div></div></div><div id="ov_cum" class="chart"></div></div>
    <h2>Cost</h2><div class="grid c2">
     ${card('Spend by channel','',null,'ch_spend',legendFor())}
     ${card('Revenue vs spend, by install day','',null,'ch_rev',legendFor())}</div>
@@ -697,6 +708,7 @@ VIEWS.overview=()=>{
 };
 VIEWS.overview.after=()=>{
   renderW0($('#ov_w0'),null);
+  renderCum($('#ov_cum'));
   const w=win(), dates=dayList(w.from==='0000'?(D.fact.map(r=>r.date).sort()[0]||S.end):w.from,w.to), rows=D.fact.filter(r=>inR(r.date,dates[0],w.to));
   const byCh=k=>rows.filter(r=>r.ch===k);
   const vis=S.chan==='all'?['meta','google','asa']:[S.chan];
@@ -714,6 +726,18 @@ VIEWS.overview.after=()=>{
   table($('#t_chan'),'chan',[{k:'ch',label:'Channel',txt:true,html:r=>chBadge(r.ch)},...metricCols(),
     {k:'w0',label:'W0 revenue',fmt:fUsd,tot:d=>wa2?all:sumK(d,'w0')},{k:'w0roas',label:'W0 ROAS',fmt:fX,tot:d=>div(wa2?all:sumK(d,'w0'),sumK(d,'spendF'))}],g,{search:false,totalLabel:wa2?'Total (w/ Organic)':'Total'});
 };
+/** running totals over the window: ad spend (all networks) vs revenue by transaction day, gross or net (Adapty) */
+const revMode=()=>S.revMode||(S.revMode=LS.get('yk_rev')||'gross');
+function renderCum(el){
+  const sg=$('#segRev'); sg.innerHTML='<span class="thumb"></span>'+[['gross','Gross'],['net','Net']].map(([v,l])=>`<button data-v="${v}" class="${revMode()===v?'on':''}">${l}</button>`).join('');
+  sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{if(S.revMode===b.dataset.v)return;S.revMode=b.dataset.v;LS.set('yk_rev',S.revMode);renderCum(el)});
+  requestAnimationFrame(placeThumbs);
+  const w=win(), dates=dayList(w.from,w.to), m=revMode()==='net'?'revenue_net':'revenue';
+  const sp={},rv={};D.fact.forEach(r=>{if(inR(r.date,w.from,w.to))sp[r.date]=(sp[r.date]||0)+r.spend});D.adapty.filter(r=>r.m===m&&inR(r.date,w.from,w.to)).forEach(r=>rv[r.date]=(rv[r.date]||0)+r.v);
+  let a=0,b=0;const cs=dates.map(d=>a+=sp[d]||0), cr=dates.map(d=>b+=rv[d]||0);
+  if(!D.adapty.some(r=>r.m===m)){el.innerHTML='<div class="empty">No Adapty revenue yet — press Pull Live Data</div>';return;}
+  timeChart(el,{dates,type:'line',fmt:fUsd,series:[{name:(m==='revenue'?'Gross':'Net')+' revenue',color:'var(--c1)',values:cr,agg:'last'},{name:'Spend',color:'var(--c2)',values:cs,agg:'last'}]});
+}
 function winRows(){const w=win();return D.fact.filter(r=>inR(r.date,w.from,w.to)&&chanOk(r))}
 VIEWS.channels=()=>`<div class="grid c2">${card('Spend share','',null,'c_share')}${card('Cost per trial by channel','',null,'c_cpt')}</div>
   <h2>CTR & CPM by channel</h2><div class="grid c2">${card('CTR','',null,'c_ctr',legendFor())}${card('CPM','',null,'c_cpm',legendFor())}</div>
@@ -728,7 +752,7 @@ VIEWS.channels.after=()=>{
   timeChart($('#c_ctr'),{dates,type:'line',fmt:fPct,zero:false,series:vis.map(k=>ratioSeries(k,'clk','impr'))});
   timeChart($('#c_cpm'),{dates,type:'line',fmt:fUsd2,zero:false,series:vis.map(k=>ratioSeries(k,'spend','impr',1000))});
   const byDay=groupBy(rows,r=>bucketOf(r.date),r=>({date:bucketOf(r.date)}));
-  table($('#t_daily'),'daily',[{k:'date',label:S.gran==='week'?'Week of':'Date',txt:true},...metricCols().slice(0,10)],byDay);
+  table($('#t_daily'),'daily',[{k:'date',label:S.gran==='week'?'Week':'Date',txt:true},...metricCols().slice(0,10)],byDay);
 };
 VIEWS.campaigns=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_camp">Campaigns</h3></div></div><div id="t_camp"></div></div>`;
 /** nested groups: levels [{key(r)→string|null, seed(rows)→row}] → [{row,kids}] with the metric sums of groupBy */
@@ -832,7 +856,7 @@ function cohortModel(){
     for(let n=0;n<=maxDay;n++){const x=days[n];cum+=x?x.rev:0;cumT+=x?x.tr:0;cumRev[n]=cum;cumTr[n]=cumT;act[n]=x?x.act:0;}
     return {d,label:d,size:sz,spend:spendBy[d]||0,cumRev,act,cumTr,maxDay}});
   if(S.gran==='week'){  // weekly cohorts: sum the daily cohorts; a week's cell is finished only when its youngest day is
-    const m=new Map(); rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:'Week of '+k,size:0,spend:0,cumRev:{},act:{},cumTr:{},maxDay:Infinity};m.set(k,o)}
+    const m=new Map(); rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:k,size:0,spend:0,cumRev:{},act:{},cumTr:{},maxDay:Infinity};m.set(k,o)}
       o.size+=r.size;o.spend+=r.spend;o.maxDay=Math.min(o.maxDay,r.maxDay);for(let n=0;n<=r.maxDay;n++){o.cumRev[n]=(o.cumRev[n]||0)+r.cumRev[n];o.act[n]=(o.act[n]||0)+r.act[n];o.cumTr[n]=(o.cumTr[n]||0)+r.cumTr[n];}});
     rows=[...m.values()];
   }
@@ -938,10 +962,11 @@ const geoCell=cc=>`<span class="cc">${esc(cc||'–')}</span>${esc(cName(cc))}`;
 /* ============================================================ Active Users */
 VIEWS.actives=()=>`<div id="a_k" class="grid kpis"></div>
  <div class="card"><div class="hd"><div><h3 data-srcid="a_trend">Still active subs & trials</h3></div>${legendFor()}</div><div id="a_trend" class="chart"></div></div>
- <h2 data-srcid="a_act">Actives</h2><div id="a_act"></div>
- <h2 data-srcid="a_tr">Active trials</h2><div id="a_tr"></div>`;
+ <div class="card"><div class="hd"><div><h3 data-srcid="a_act">Actives</h3></div><label class="switch"><input type="checkbox" id="aCancel"> Show cancelled</label></div><div id="a_act"></div></div>
+ <div class="card"><div class="hd"><div><h3 data-srcid="a_tr">Active trials</h3></div></div><div id="a_tr"></div></div>
+ <div class="card"><div class="hd"><div><h3 data-srcid="a_sub">Active subscriptions</h3></div></div><div id="a_sub"></div></div>`;
 VIEWS.actives.after=()=>{
-  if(!D.ev.length){$('#a_k').innerHTML='<div class="card empty" style="grid-column:1/-1">No subscription events yet — press Pull Live Data.</div>';['a_trend','a_act','a_tr'].forEach(i=>$('#'+i).innerHTML='');return;}
+  if(!D.ev.length){$('#a_k').innerHTML='<div class="card empty" style="grid-column:1/-1">No subscription events yet — press Pull Live Data.</div>';['a_trend','a_act','a_tr','a_sub'].forEach(i=>$('#'+i).innerHTML='');return;}
   const now=Date.now(), ps=people().map(p=>({p,s:statusAt(p,now)})).filter(x=>x.s.type);
   const subs=ps.filter(x=>x.s.type==='sub'), trials=ps.filter(x=>x.s.type==='trial');
   const on=a=>a.filter(x=>x.s.renewing).length;
@@ -950,7 +975,10 @@ VIEWS.actives.after=()=>{
   const sw=win(S.dataEnd), dates=dayList(sw.from,TODAY), st=stillSeries(dates);
   timeChart($('#a_trend'),{dates,type:'line',fmt:fK,series:[{name:'Still Active Subs',color:'var(--c1)',values:st.sub,agg:'last'},{name:'Still Active Trials',color:'var(--c2)',values:st.tri,agg:'last'}]});
   const cur=s=>s.billing?'Billing issue':s.renewing?'Renewing':'Cancelled';
-  const rows=ps.map(({p,s})=>({type:s.type==='sub'?'Subs':'Trial',cc:p.cc,net:p.net,renew:p.renews,first:p.ev[0].t,last:s.type==='sub'?s.last:p.trialT,cur:cur(s),next:s.exp,pid:p.pid}));
+  // renewing only by default; the switch adds the ones who cancelled but still have access
+  const showC=S.showCancel??(S.showCancel=LS.get('yk_cancel')==='1'), sw2=$('#aCancel'); sw2.checked=showC;
+  sw2.onchange=()=>{S.showCancel=sw2.checked;LS.set('yk_cancel',S.showCancel?'1':'0');render()};
+  const rows=ps.filter(x=>showC||x.s.renewing).map(({p,s})=>({type:s.type==='sub'?'Subs':'Trial',cc:p.cc,net:p.net,renew:p.renews,first:p.ev[0].t,last:s.type==='sub'?s.last:p.trialT,cur:cur(s),next:s.exp,pid:p.pid}));
   if(!S.sort.act)S.sort.act={k:'next',asc:true};
   table($('#a_act'),'act',[{k:'type',label:'Type',txt:true},{k:'cc',label:'Geo',txt:true,html:r=>geoCell(r.cc)},{k:'net',label:'Net USD',fmt:fUsd2,tot:d=>sumK(d,'net')},{k:'renew',label:'Total renew',fmt:f0,tot:d=>sumK(d,'renew')},
     {k:'first',label:'First time',html:r=>relCell(r.first)},{k:'last',label:'Last time',html:r=>relCell(r.last)},{k:'cur',label:'Current',txt:true,html:r=>`<span class="pill ${r.cur==='Renewing'?'ok':r.cur==='Cancelled'?'skipped':'error'}">${r.cur}</span>`},
@@ -959,6 +987,12 @@ VIEWS.actives.after=()=>{
   if(!S.sort.atr)S.sort.atr={k:'left',asc:true};
   table($('#a_tr'),'atr',[{k:'pid',label:'ID',txt:true,html:r=>`<span class="pid" title="${esc(r.pid)}">${esc(r.pid)}</span>`},{k:'date',label:'Trial date',html:r=>relCell(r.date)},{k:'cc',label:'Country',txt:true,html:r=>geoCell(r.cc)},
     {k:'conv',label:'Trial convert date',html:r=>relCell(r.conv)},{k:'left',label:'Days left',fmt:v=>isFinite(v)?v.toFixed(1):'–'}],tr,{totalLabel:`Total (${tr.length})`});
+  // converted / subscribed people whose renewal is still on
+  const sb=subs.filter(x=>x.s.renewing).map(({p,s})=>({pid:p.pid,cc:p.cc,since:(p.pays[0]||{}).t,pays:p.pays.length,net:p.net,last:s.last,next:s.exp,left:(s.exp-now)/864e5,billing:s.billing}));
+  if(!S.sort.asub)S.sort.asub={k:'left',asc:true};
+  table($('#a_sub'),'asub',[{k:'pid',label:'ID',txt:true,html:r=>`<span class="pid" title="${esc(r.pid)}">${esc(r.pid)}</span>`},{k:'cc',label:'Country',txt:true,html:r=>geoCell(r.cc)},
+    {k:'since',label:'Subscribed',html:r=>relCell(r.since)},{k:'pays',label:'Payments',fmt:f0,tot:d=>sumK(d,'pays')},{k:'net',label:'Net USD',fmt:fUsd2,tot:d=>sumK(d,'net')},
+    {k:'last',label:'Last payment',html:r=>relCell(r.last)},{k:'next',label:'Next renewal',html:r=>relCell(r.next)+(r.billing?' <span class="pill error">Billing issue</span>':'')},{k:'left',label:'Days left',fmt:v=>isFinite(v)?v.toFixed(1):'–'}],sb,{totalLabel:`Total (${sb.length})`});
 };
 
 /* ============================================================ cohort tables with labelled columns */
@@ -967,14 +1001,14 @@ function heatT(el,{rows,first='Install date',pre=[],cols,fmt,scale,tot}){
   if(!rows.length){el.innerHTML='<div class="empty">No cohort data yet — press Pull Live Data</div>';return;}
   const vals=rows.flatMap(r=>cols.map(c=>c.get(r))).filter(v=>typeof v==='number'&&isFinite(v)), mx=scale||Math.max(...vals,1e-9);
   const td=(v,lab,c)=>{if(v==='nospend')return '<td style="color:var(--muted);background:var(--card-2)">–</td>';if(!isFinite(v))return '<td></td>';const k=Math.min(1,v/mx),pct=Math.round(6+k*84);
-    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${esc(String(lab).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim())} · ${c.label}: ${fmt(v)}">${fmt(v)}</td>`};
-  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>${first}</th>${pre.map(p=>`<th class="pre">${p.label}</th>`).join('')}${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${r.label}</td>${pre.map(p=>`<td class="pre">${p.fmt(p.get(r))}</td>`).join('')}${cols.map(c=>td(c.get(r),r.label,c)).join('')}</tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot.label||'Total'}</td>${pre.map(p=>`<td class="pre">${p.tot?p.fmt(p.tot(rows)):''}</td>`).join('')}${cols.map(c=>{const v=c.tot?c.tot(rows):NaN;return `<td>${isFinite(v)?fmt(v):''}</td>`}).join('')}</tr></tfoot>`:''}</table></div>`;
+    return `<td style="background:color-mix(in srgb,var(--ink) ${pct}%,var(--card));color:${pct>48?'var(--on-ink)':'var(--ink)'}" data-t="${esc(String(fmtD(lab)).replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim())} · ${c.label}: ${fmt(v)}">${fmt(v)}</td>`};
+  el.innerHTML=`<div class="tablewrap"><table class="heat"><thead><tr><th>${first}</th>${pre.map(p=>`<th class="pre">${p.label}</th>`).join('')}${cols.map(c=>`<th>${c.label}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr><td>${fmtD(r.label)}</td>${pre.map(p=>`<td class="pre">${p.fmt(p.get(r))}</td>`).join('')}${cols.map(c=>td(c.get(r),r.label,c)).join('')}</tr>`).join('')}</tbody>${tot?`<tfoot><tr><td>${tot.label||'Total'}</td>${pre.map(p=>`<td class="pre">${p.tot?p.fmt(p.tot(rows)):''}</td>`).join('')}${cols.map(c=>{const v=c.tot?c.tot(rows):NaN;return `<td>${isFinite(v)?fmt(v):''}</td>`}).join('')}</tr></tfoot>`:''}</table></div>`;
   el.querySelectorAll('[data-t]').forEach(n=>{n.onmousemove=e=>showTip(e,n.dataset.t);n.onmouseleave=hideTip});
 }
 /** group day rows into Monday weeks: sums numeric fields; a field is blank for the week if any day is blank (unfinished) */
 function weekly(rows,numKeys,strictKeys){
   if(S.gran!=='week')return rows;
-  const m=new Map();rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:'Week of '+k};numKeys.forEach(f=>o[f]=0);m.set(k,o)}
+  const m=new Map();rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:k};numKeys.forEach(f=>o[f]=0);m.set(k,o)}
     numKeys.forEach(f=>{const v=r[f];if(strictKeys.includes(f)){o[f]=isFinite(o[f])&&isFinite(v)?o[f]+v:NaN}else if(isFinite(v))o[f]+=v})});
   return [...m.values()];
 }
@@ -1099,7 +1133,7 @@ const TABS_UI=[['overview','Overview'],['actives','Active Users'],['subs','Subsc
 const TITLES={...Object.fromEntries(TABS_UI),sources:'Data Sources'};
 /* where each page's numbers come from (shown when hovering a page, chart or table title) */
 const SOURCES={
-  overview:[['Spend, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['ROAS, W0','Adapty install cohorts'],['Net revenue, paid subs','Adapty'],['Payers','PostHog']],
+  overview:[['Spend, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['Total ROAS','Adapty net revenue ÷ all ad spend'],['W0','Adapty install cohorts'],['Net revenue, paid subs','Adapty'],['Payers','PostHog']],
   subs:[['Everything','Adapty analytics']],
   channels:[['Spend, impr., clicks, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer']],
   campaigns:[['Spend, impr., clicks, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['W0','Adapty install cohorts']],
@@ -1113,7 +1147,7 @@ const SOURCES={
 const NET='Meta, Google Ads, Apple Search Ads', COH='Adapty install cohorts';
 const SRC={
   ch_spend:[['Spend',NET]], ch_rev:[['W0 revenue, revenue to date',COH],['Spend',NET]], ch_inst:[['Installs',NET]], ch_cpi:[['Spend, installs',NET]],
-  ov_w0:[['W0 revenue',COH],['Spend',NET]], k_w0:[['W0 revenue',COH],['Spend',NET]],
+  ov_w0:[['W0 revenue',COH],['Spend',NET]], ov_cum:[['Spend',NET],['Gross / net revenue','Adapty']], k_w0:[['W0 revenue',COH],['Spend',NET]],
   t_chan:[['Spend, impr., clicks, installs',NET],['Trials','AppsFlyer'],['W0',COH]],
   c_share:[['Spend',NET]], c_cpt:[['Spend',NET],['Trials','AppsFlyer']], c_ctr:[['Clicks, impressions',NET]], c_cpm:[['Spend, impressions',NET]],
   t_daily:[['Spend, impr., clicks, installs',NET],['Trials','AppsFlyer']],
@@ -1123,7 +1157,7 @@ const SRC={
   k_ltv:[['Revenue, cohort size','PostHog cohorts']], k_roas:[['Revenue','PostHog cohorts'],['Spend',NET]],
   k_h1:[['Revenue, cohort size','PostHog cohorts']], k_h4:[['Trials','PostHog cohorts']], k_roast:[['Cumulative net revenue, installs',COH],['Spend',NET]],
   u_t2p:[['Trials, payments','Adapty events in PostHog']], u_i2p:[['Payments','Adapty events in PostHog'],['New users','PostHog app_open']],
-  a_trend:[['Trials, payments, cancellations','Adapty events in PostHog']], a_act:[['Subscribers','Adapty events in PostHog']], a_tr:[['Trials','Adapty events in PostHog']],
+  a_trend:[['Trials, payments, cancellations','Adapty events in PostHog']], a_act:[['Subscribers','Adapty events in PostHog']], a_tr:[['Trials','Adapty events in PostHog']], a_sub:[['Payments, renewals, cancellations','Adapty events in PostHog']],
   r_tab:[['First & later app opens','PostHog app_open']], r_curve:[['App opens','PostHog app_open']], r_trend:[['App opens','PostHog app_open']], r_os:[['App opens','PostHog app_open']],
   r_tabp:[['Trials, payments','Adapty events in PostHog']], r_curvep:[['Trials, payments','Adapty events in PostHog']], r_trendp:[['Trials, payments','Adapty events in PostHog']], r_osp:[['Trials, payments','Adapty events in PostHog']],
   g_tab:[['Spend',NET],['Installs, trials','AppsFlyer geo report'],['New payers, net revenue','Adapty events in PostHog'],['W0','Adapty install cohorts by country'],['Retention','PostHog app_open']],
