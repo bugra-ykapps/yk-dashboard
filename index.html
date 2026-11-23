@@ -1176,7 +1176,7 @@ VIEWS.geo.after=()=>{
 VIEWS.sources=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_src">Data sources</h3></div>${EMBED?'':'<button class="btn" id="bConn">Connection</button>'}</div><div id="t_src"></div></div>
  <h2 data-srcid="t_tabs">Sheet tabs</h2><div id="t_tabs"></div>`;
 VIEWS.sources.after=()=>{
-  const names={meta:'Meta Ads',google:'Google Ads',asa:'Apple Search Ads',appsflyer:'AppsFlyer',posthog:'PostHog',adapty:'Adapty',cohorts:'Adapty install cohorts',geo:'Geo (networks + AppsFlyer)',users:'Active users & retention (PostHog)'};
+  const names={meta:'Meta Ads',google:'Google Ads',asa:'Apple Search Ads',appsflyer:'AppsFlyer',posthog:'PostHog',adapty:'Adapty',cohorts:'Adapty install cohorts (channels)',cohorts_split:'Adapty install cohorts (campaigns & countries)',geo:'Geo (networks + AppsFlyer)',users:'Active users & retention (PostHog)'};
   const rows=Object.keys(names).map(k=>{const s=D.src.find(x=>x.source===k)||{};return {name:names[k],status:s.status||'not pulled',rows:+s.rows||0,msg:s.message||'',at:s.pulled_at?new Date(s.pulled_at).toLocaleString():'–',sec:s.seconds===''||s.seconds==null?NaN:+s.seconds}});
   table($('#t_src'),'src',[{k:'name',label:'Source',txt:true},{k:'status',label:'Status',txt:true,html:r=>`<span class="pill ${r.status==='ok'?'ok':r.status==='error'?'error':'skipped'}">${esc(r.status)}</span>`},{k:'rows',label:'Rows written',tot:d=>sumK(d,'rows'),fmt:f0},{k:'at',label:'Last pull',txt:true},{k:'sec',label:'Seconds',fmt:f0,tot:d=>sumK(d.filter(r=>isFinite(r.sec)),'sec')},{k:'msg',label:'Message',txt:true}],rows,{search:false});
   const T=S.raw.tabs;
@@ -1358,7 +1358,7 @@ async function load(){
     const keepTab=S.tab; setData(fresh,false); if(shown){S.tab=keepTab;} }
   catch(e){ if(!shown){toast('Could not load the data: '+esc(e.message)); setData(demo(),true);} }
 }
-const PULL_GROUPS=[['cohorts'],['adapty'],['posthog'],['geo'],['users'],['meta','google','asa','appsflyer']];
+const PULL_GROUPS=[['cohorts'],['cohorts_split'],['adapty'],['posthog'],['geo'],['users'],['meta','google','asa','appsflyer']];
 $('#bPull').onclick=async()=>{
   const b=$('#bPull'); if(b.disabled)return; b.disabled=true;b.classList.add('busy');$('#bPullM').classList.add('busy');$('#pullTxt').textContent='Pulling…';
   try{
