@@ -255,6 +255,17 @@ table.heat{border-spacing:4px;font-size:12.5px}
 .modal label{display:block;margin:14px 0 6px;font-size:12.5px;color:var(--ink-2)}
 .modal input{width:100%;padding:11px 14px;border-radius:999px;border:0;background:var(--card-2)}
 .btn{border:0;border-radius:999px;padding:10px 18px;font-weight:500;background:var(--card-2)}
+.btn[disabled]{opacity:.6;cursor:wait}
+.modal .sel{width:100%;padding:11px 30px 11px 14px;font-size:13px}
+.pform{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;margin-top:6px}.pform .wide{grid-column:1/-1}
+.plist{margin:16px 0 4px;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.plist .pi{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 12px 10px 16px;border-radius:14px;background:var(--card-2);font-size:13px}
+.plist .pi small{display:block;color:var(--ink-2);font-size:11.5px;margin-top:2px}
+.plist .pi b{font-weight:600;font-variant-numeric:tabular-nums}
+.plist .pi button{width:30px;height:30px;border:0;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--ink-2)}
+.plist .pi button:hover{color:var(--bad)}
+.plist .none{font-size:13px;color:var(--muted);padding:6px 2px}
+@media (max-width:760px){.pform{grid-template-columns:1fr}}
 .btn.dark{background:var(--ink);color:var(--on-ink)}
 .toast{position:fixed;right:22px;bottom:22px;z-index:70;background:#111;color:#e9e9e6;border-radius:var(--r-md);padding:14px 18px;box-shadow:0 24px 50px -16px rgba(0,0,0,.55);max-width:440px;display:none;font-size:13px;line-height:1.7}
 .toast b{color:#fff}
@@ -325,7 +336,16 @@ table.heat{border-spacing:4px;font-size:12.5px}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi{padding:16px}.kpi .d{font-size:10.5px}
   .tools{gap:8px}.pillbar{max-width:100%;flex-wrap:wrap;border-radius:22px}.seg{max-width:100%;overflow-x:auto;scrollbar-width:none}
   .card .tablewrap{margin:0 -18px -18px}
+  /* phone: the tab bar is only the tabs; Pull moves to the round buttons next to the title */
+  .brand,.side-foot{display:none}
+  .side{padding:6px;scrollbar-width:none}.side::-webkit-scrollbar{display:none}
+  #nav{width:100%;justify-content:space-between}#nav button{padding:10px;flex:none;width:auto}
+  .top{align-items:center}.actions{padding-top:0;gap:6px}.round{width:38px;height:38px}
+  .actions .round.pull{display:grid}
 }
+.round.pull{display:none;background:var(--ink);color:var(--on-ink)}
+.round.pull .spin{border-color:color-mix(in srgb,var(--on-ink) 30%,transparent);border-top-color:var(--on-ink)}
+.round.pull.busy .spin{display:block}.round.pull.busy .arrow{display:none}
 </style>
 </head>
 <body>
@@ -342,6 +362,8 @@ table.heat{border-spacing:4px;font-size:12.5px}
     <div class="top">
       <div><h1 id="pageTitle">Overview</h1></div>
       <div class="actions">
+        <button class="round pull" id="bPullM" title="Pull live data from every source"><svg class="i arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></svg><span class="spin"></span></button>
+        <button class="round" id="bPromo" title="Promotions (ad credits)"><svg class="i" viewBox="0 0 24 24"><path d="M12.6 2.6A2 2 0 0 0 11.2 2H4a2 2 0 0 0-2 2v7.2a2 2 0 0 0 .6 1.4l8.7 8.7a2.4 2.4 0 0 0 3.4 0l6.6-6.6a2.4 2.4 0 0 0 0-3.4z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></button>
         <button class="round" id="bTheme" title="Light / dark"><svg class="i" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
         <button class="round" id="bSet" title="Settings · data sources"><svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
       </div>
@@ -349,9 +371,8 @@ table.heat{border-spacing:4px;font-size:12.5px}
     <div class="tools">
       <div class="pillbar"><div class="seg" id="segGran"></div></div>
       <div class="pillbar"><div class="seg" id="segRange"></div></div>
-      <div class="pillbar"><div class="seg" id="segChan"></div></div>
       <div class="pillbar"><div class="seg" id="segOs"></div></div>
-      <div class="pillbar"><label class="switch" title="Hide the last 4 install days (today + 3): their 3-day trials haven't converted yet"><input type="checkbox" id="fFin"> Finished cohorts</label><label class="switch" title="Compare with the previous period of the same length"><input type="checkbox" id="fCmp"> Comparison</label></div>
+      <div class="pillbar"><label class="switch" title="Hide the last 4 install days (today + 3): their 3-day trials haven't converted yet"><input type="checkbox" id="fFin"> Finished cohorts</label><label class="switch" title="Compare with the previous period of the same length"><input type="checkbox" id="fCmp"> Comparison</label><label class="switch" title="Apply ad credits: each promotion is spread evenly over its days and taken off that network's spend"><input type="checkbox" id="fPromo"> Promotions</label></div>
     </div>
     <main id="main"><div class="empty" style="padding:90px 20px">Loading live data…</div></main>
   </section>
@@ -367,6 +388,19 @@ table.heat{border-spacing:4px;font-size:12.5px}
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn" id="sCancel">Cancel</button><button class="btn dark" id="sSave">Save &amp; load</button></div>
 </div></div>
 
+<div class="modal" id="pmodal"><div class="box">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h3 style="margin:0;font-size:18px">Promotions</h3><button class="round" id="pClose" title="Close" style="width:34px;height:34px;box-shadow:none;background:var(--card-2)"><svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+  <div id="pList" class="plist"></div>
+  <div class="pform">
+    <div><label>Network</label><select id="pNet" class="sel"><option value="meta">Meta</option><option value="google">Google Ads</option><option value="asa">Apple Search Ads</option></select></div>
+    <div><label>Amount (USD)</label><input id="pAmt" type="number" min="0" step="0.01" inputmode="decimal" placeholder="500"></div>
+    <div><label>Start date</label><input id="pStart" type="date"></div>
+    <div><label>End date</label><input id="pEnd" type="date"></div>
+    <div class="wide"><label>Note</label><input id="pNote" maxlength="200" placeholder="Optional"></div>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px"><button class="btn" id="pCancel">Cancel</button><button class="btn dark" id="pSave">Add promotion</button></div>
+</div></div>
+
 <script>/*__YK_EMBED__*/</script>
 <script>
 /* ============================================================ config / state */
@@ -375,7 +409,7 @@ table.heat{border-spacing:4px;font-size:12.5px}
 const CONFIG = { webAppUrl: "https://script.google.com/macros/s/AKfycbyvi2NozW-3rA2NRm1ZPDxfrtIGEbB-Jlh7yPr6JuXMJUuQkYTporBZ-hWNbnDu7znIqw/exec", key: "" };
 {const m=location.hash.match(/[#&]k=([A-Za-z0-9_-]+)/); if(m){try{localStorage.setItem('yk_key',m[1])}catch(e){}}}
 const LS = { get(k){try{return localStorage.getItem(k)}catch(e){return null}}, set(k,v){try{localStorage.setItem(k,v)}catch(e){}} };
-const S = { raw:null, demo:false, tab:({adsets:'campaigns',creatives:'campaigns'})[LS.get('yk_tab')]||LS.get('yk_tab')||'overview', app:'all', range:30, chan:'all', sort:{}, search:{}, end:null, finished:LS.get('yk_fin')!=='0', w0split:LS.get('yk_w0split')==='1', os:LS.get('yk_os')||'all', gran:LS.get('yk_gran')||'day', compare:LS.get('yk_cmp')!=='0', hidden:{} };
+const S = { raw:null, demo:false, tab:({adsets:'campaigns',creatives:'campaigns'})[LS.get('yk_tab')]||LS.get('yk_tab')||'overview', app:'all', range:30, chan:'all', sort:{}, search:{}, end:null, finished:LS.get('yk_fin')!=='0', w0split:LS.get('yk_w0split')==='1', os:LS.get('yk_os')||'all', gran:LS.get('yk_gran')||'day', compare:LS.get('yk_cmp')!=='0', promo:LS.get('yk_promo')!=='0', hidden:{} };
 const CH = { meta:{name:'Meta',color:'var(--c1)'}, google:{name:'Google',color:'var(--c2)'}, asa:{name:'Apple Search Ads',color:'var(--c3)'}, other:{name:'Other / organic',color:'var(--c4)'} };
 /* monochrome series are also told apart by line style */
 const DASH=['', '6 5', '1.5 4.5', '10 4 2 4'];
@@ -385,7 +419,7 @@ const esc = s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'
 /* ============================================================ formatting */
 /** ISO day → "11 Sep 26" (any other value passes through) */
 const isoDay=v=>/^\d{4}-\d{2}-\d{2}$/.test(String(v));
-const fmtD=v=>{if(!isoDay(v))return v;const x=new Date(v+'T00:00:00Z');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit',timeZone:'UTC'})};
+const fmtD=v=>{if(/^\d{4}-\d{2}$/.test(String(v)))return new Date(v+'-01T00:00:00Z').toLocaleDateString('en-GB',{month:'short',year:'2-digit',timeZone:'UTC'});if(!isoDay(v))return v;const x=new Date(v+'T00:00:00Z');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit',timeZone:'UTC'})};
 const f0 = n=>isFinite(n)?Math.round(n).toLocaleString('en-US'):'–';
 const fK = n=>!isFinite(n)?'–':Math.abs(n)>=1e6?(n/1e6).toFixed(2)+'M':Math.abs(n)>=1e4?(n/1e3).toFixed(1)+'k':f0(n);
 const fUsd = n=>!isFinite(n)?'–':(n<0?'-':'')+'$'+(Math.abs(n)>=1e4?fK(Math.abs(n)):Math.abs(n).toLocaleString('en-US',{maximumFractionDigits:0}));
@@ -445,6 +479,11 @@ function build(){
   D.ret=(T.app_retention||[]).map(r=>({d:String(r.cohort_date),cc:ccNorm(r.country),os:String(r.os),u:n(r.users),d1:n(r.d1),d3:n(r.d3),w1:n(r.w1),w2:n(r.w2),w3:n(r.w3),w4:n(r.w4)}))
     .filter(r=>S.os==='all'||r.os===S.os);
   D._pm=null;
+  // promotions (ad credits): the amount is spread evenly over its days and taken off that network's spend
+  D.promos=(T.promotions||[]).map(r=>({id:String(r.id),ch:String(r.network),amt:n(r.amount_usd),start:String(r.start).slice(0,10),end:String(r.end).slice(0,10),note:String(r.note||'')}))
+    .filter(p=>p.amt>0&&isoDay(p.start)&&isoDay(p.end)&&p.start<=p.end);
+  if(S.promo)D.promos.forEach(p=>{const days=dayList(p.start,p.end),v=p.amt/days.length;
+    days.forEach(d=>fact.push({date:d,ch:p.ch,os:p.ch==='asa'?'ios':'',app:'YK Apps',camp:'Promotion credit',set:'',spend:-v,impr:0,clk:0,inst:0,trial:0,promo:true}));});
   D.fact=S.os==='all'?fact:fact.filter(r=>r.os===S.os); D.af=S.os==='all'?af:af.filter(r=>r.os===S.os);
   D.osUnknownSpend=S.os==='all'?0:fact.filter(r=>!r.os).reduce((t,r)=>t+r.spend,0);
   {const m={}; (T.posthog_daily||[]).filter(r=>S.os==='all'||phOs(r.os)===S.os).forEach(r=>{const d=String(r.date),o=m[d]||(m[d]={date:d,dau:0,nu:0,trials:0,payers:0,rev:0});
@@ -562,8 +601,13 @@ let _gid=0;
 /* ---- daily → weekly (weeks start Monday). Each series says how it aggregates:
    default sum · agg:'last' (status, e.g. active subs, MRR) · agg:'avg' · ratio from num/den (e.g. CPI = Σspend ÷ Σinstalls) */
 const monday=d=>{const x=new Date(d+'T00:00:00Z');return addDays(d,-((x.getUTCDay()+6)%7));};
-const bucketOf=d=>S.gran==='week'?monday(d):d;
-function weekBuckets(dates){const keys=[],idx=[],pos={};dates.forEach((d,i)=>{const k=monday(d);if(pos[k]===undefined){pos[k]=keys.length;keys.push(k);idx.push([])}idx[pos[k]].push(i)});return {keys,idx};}
+/** period a day belongs to: the day, its Monday, or its month ("2026-11") */
+const pStart=d=>S.gran==='week'?monday(d):S.gran==='month'?String(d).slice(0,7):d;
+const bucketOf=pStart;
+/** "day" | "week" | "month", for titles */
+const per=()=>S.gran==='day'?'day':S.gran;
+const Per=()=>({day:'Day',week:'Week',month:'Month'})[S.gran];
+function weekBuckets(dates){const keys=[],idx=[],pos={};dates.forEach((d,i)=>{const k=pStart(d);if(pos[k]===undefined){pos[k]=keys.length;keys.push(k);idx.push([])}idx[pos[k]].push(i)});return {keys,idx};}
 function aggSeries(s,idx){
   const fin=v=>isFinite(v)&&v!==null;
   return idx.map(ix=>{
@@ -573,8 +617,8 @@ function aggSeries(s,idx){
 }
 /** rows with a date field → weekly rows: sums the given keys, then `after(row)` recomputes ratios */
 function bucketRows(rows,key,sumKeys,after){
-  if(S.gran!=='week')return rows;
-  const m=new Map(); rows.forEach(r=>{const k=monday(r[key]);let o=m.get(k);if(!o){o={[key]:k};sumKeys.forEach(f=>o[f]=0);m.set(k,o)}sumKeys.forEach(f=>{if(isFinite(r[f]))o[f]+=r[f]})});
+  if(S.gran==='day')return rows;
+  const m=new Map(); rows.forEach(r=>{const k=pStart(r[key]);let o=m.get(k);if(!o){o={[key]:k};sumKeys.forEach(f=>o[f]=0);m.set(k,o)}sumKeys.forEach(f=>{if(isFinite(r[f]))o[f]+=r[f]})});
   return [...m.values()].map(o=>(after&&after(o),o));
 }
 /** time series: type bar|line|area, stacked for bars. series:[{name,color,values[],agg?,num?,den?,mult?}]
@@ -586,7 +630,7 @@ function timeChart(el,opts){
   const card=el.closest('.card'), lg=card&&card.querySelector('.hd .legend');
   const isLine=type!=='bar';
   series.forEach((s,i)=>{s.dash=isLine?DASH[i%DASH.length]:''});
-  const weekly=S.gran==='week'&&!noBucket;
+  const weekly=S.gran!=='day'&&!noBucket;
   if(weekly){const b=weekBuckets(dates);dates=b.keys;series=series.map(s=>({...s,values:aggSeries(s,b.idx)}));}
   const N=dates.length;
   const hid=S.hidden[el.id]||(S.hidden[el.id]=new Set());
@@ -601,7 +645,7 @@ function timeChart(el,opts){
   const y=v=>m.t+ih-(v-minV)/(maxV-minV||1)*ih, x=i=>m.l+(type==='bar'?(i+.5)/N*iw:(N===1?iw/2:i/(N-1)*iw));
   let g='', defs='';
   for(let t=0;t<=4;t++){const v=minV+(maxV-minV)*t/4; g+=`<line x1="${m.l}" x2="${W-m.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" ${t?'stroke-dasharray="2 4"':''}/><text class="ax" x="${m.l-10}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text>`;}
-  const fits=Math.max(2,Math.floor(iw/(isoDay(dates[0])?78:44))), step=Math.ceil(N/Math.min(7,fits)); dates.forEach((d,i)=>{if(i%step===0||i===N-1&&N>1&&(N-1)%step>step/2)g+=`<text class="ax" x="${x(i)}" y="${H-6}" text-anchor="${i===0&&N>1?'start':i===N-1&&N>1?'end':'middle'}">${fmtD(d)}</text>`});
+  const fits=Math.max(2,Math.floor(iw/(isoDay(dates[0])?78:56))), step=Math.ceil(N/Math.min(7,fits)); dates.forEach((d,i)=>{if(i%step===0||i===N-1&&N>1&&(N-1)%step>step/2)g+=`<text class="ax" x="${x(i)}" y="${H-6}" text-anchor="${i===0&&N>1?'start':i===N-1&&N>1?'end':'middle'}">${fmtD(d)}</text>`});
   if(type==='bar'){
     const slot=iw/N, grouped=!stacked&&series.length>1, bw=Math.max(2,Math.min(26,slot*(grouped?.8:.62))), sw=grouped?bw/series.length:bw;
     g+='<g class="barg">';
@@ -741,7 +785,7 @@ function renderCum(el){
 function winRows(){const w=win();return D.fact.filter(r=>inR(r.date,w.from,w.to)&&chanOk(r))}
 VIEWS.channels=()=>`<div class="grid c2">${card('Spend share','',null,'c_share')}${card('Cost per trial by channel','',null,'c_cpt')}</div>
   <h2>CTR & CPM by channel</h2><div class="grid c2">${card('CTR','',null,'c_ctr',legendFor())}${card('CPM','',null,'c_cpm',legendFor())}</div>
-  <h2 data-srcid="t_daily">${S.gran==='week'?'Weekly':'Daily'} breakdown</h2><div id="t_daily"></div>`;
+  <h2 data-srcid="t_daily">${({day:'Daily',week:'Weekly',month:'Monthly'})[S.gran]} breakdown</h2><div id="t_daily"></div>`;
 VIEWS.channels.after=()=>{
   const rows=winRows(),g=groupBy(rows,r=>r.ch,r=>({ch:r.ch}));
   hbar($('#c_share'),g.map(r=>({name:CH[r.ch].name,value:r.spend,color:CH[r.ch].color})),fUsd);
@@ -752,7 +796,7 @@ VIEWS.channels.after=()=>{
   timeChart($('#c_ctr'),{dates,type:'line',fmt:fPct,zero:false,series:vis.map(k=>ratioSeries(k,'clk','impr'))});
   timeChart($('#c_cpm'),{dates,type:'line',fmt:fUsd2,zero:false,series:vis.map(k=>ratioSeries(k,'spend','impr',1000))});
   const byDay=groupBy(rows,r=>bucketOf(r.date),r=>({date:bucketOf(r.date)}));
-  table($('#t_daily'),'daily',[{k:'date',label:S.gran==='week'?'Week':'Date',txt:true},...metricCols().slice(0,10)],byDay);
+  table($('#t_daily'),'daily',[{k:'date',label:S.gran==='day'?'Date':Per(),txt:true},...metricCols().slice(0,10)],byDay);
 };
 VIEWS.campaigns=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="t_camp">Campaigns</h3></div></div><div id="t_camp"></div></div>`;
 /** nested groups: levels [{key(r)→string|null, seed(rows)→row}] → [{row,kids}] with the metric sums of groupBy */
@@ -839,11 +883,11 @@ function renderW0(chartEl,tableEl){
   if(tableEl){
     const keys=['inst','spend','rev',...m.split.flatMap(c=>['rev_'+c,'spend_'+c])];
     const rows=bucketRows(m.rows,'date',keys,o=>{o.roas=div(o.rev,o.spend);m.split.forEach(c=>o['roas_'+c]=div(o['rev_'+c],o['spend_'+c]))});
-    table(tableEl,'w0',[{k:'date',label:S.gran==='week'?'Install week':'Install day',txt:true},{k:'inst',label:'Installs',fmt:fK,tot:d=>sumK(d,'inst')},{k:'spend',label:'Spend',fmt:fUsd,tot:d=>sumK(d,'spend')},{k:'rev',label:'W0 revenue',fmt:fUsd,tot:d=>sumK(d,'rev')},{k:'roas',label:'W0 ROAS',fmt:fX,tot:d=>div(sumK(d,'rev'),sumK(d,'spend'))},
+    table(tableEl,'w0',[{k:'date',label:'Install '+per(),txt:true},{k:'inst',label:'Installs',fmt:fK,tot:d=>sumK(d,'inst')},{k:'spend',label:'Spend',fmt:fUsd,tot:d=>sumK(d,'spend')},{k:'rev',label:'W0 revenue',fmt:fUsd,tot:d=>sumK(d,'rev')},{k:'roas',label:'W0 ROAS',fmt:fX,tot:d=>div(sumK(d,'rev'),sumK(d,'spend'))},
       ...m.split.map(c=>({k:'roas_'+c,label:CH[c].name+' W0 ROAS',fmt:fX,tot:d=>div(sumK(d,'rev_'+c),sumK(d,'spend_'+c))}))],rows,{search:false});
   }
 }
-const w0Card=(id)=>`<div class="card"><div class="hd"><div><h3 data-srcid="${id}">W0 ROAS by install ${S.gran==='week'?'week':'day'}</h3></div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="legend w0lg"></div><label class="switch w0split"><input type="checkbox"> Split by channel</label></div></div><div id="${id}" class="chart"></div></div>`;
+const w0Card=(id)=>`<div class="card"><div class="hd"><div><h3 data-srcid="${id}">W0 ROAS by install ${per()}</h3></div><div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div class="legend w0lg"></div><label class="switch w0split"><input type="checkbox"> Split by channel</label></div></div><div id="${id}" class="chart"></div></div>`;
 const COLS=[0,1,3,7,14,21,30];
 /** cohort rows by start day. A cell is empty only while unfinished: install/trial day + n days is after the last data day. */
 function cohortModel(){
@@ -855,8 +899,8 @@ function cohortModel(){
   let rows=starts.map(d=>{const days=by[d]||{},sz=size[d]||(days[0]?days[0].act:0),maxDay=Math.max(0,ageOf(d));let cum=0,cumT=0;const cumRev={},act={},cumTr={};
     for(let n=0;n<=maxDay;n++){const x=days[n];cum+=x?x.rev:0;cumT+=x?x.tr:0;cumRev[n]=cum;cumTr[n]=cumT;act[n]=x?x.act:0;}
     return {d,label:d,size:sz,spend:spendBy[d]||0,cumRev,act,cumTr,maxDay}});
-  if(S.gran==='week'){  // weekly cohorts: sum the daily cohorts; a week's cell is finished only when its youngest day is
-    const m=new Map(); rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:k,size:0,spend:0,cumRev:{},act:{},cumTr:{},maxDay:Infinity};m.set(k,o)}
+  if(S.gran!=='day'){  // weekly / monthly cohorts: sum the daily cohorts; a period's cell is finished only when its youngest day is
+    const m=new Map(); rows.forEach(r=>{const k=pStart(r.d);let o=m.get(k);if(!o){o={d:k,label:k,size:0,spend:0,cumRev:{},act:{},cumTr:{},maxDay:Infinity};m.set(k,o)}
       o.size+=r.size;o.spend+=r.spend;o.maxDay=Math.min(o.maxDay,r.maxDay);for(let n=0;n<=r.maxDay;n++){o.cumRev[n]=(o.cumRev[n]||0)+r.cumRev[n];o.act[n]=(o.act[n]||0)+r.act[n];o.cumTr[n]=(o.cumTr[n]||0)+r.cumTr[n];}});
     rows=[...m.values()];
   }
@@ -864,13 +908,13 @@ function cohortModel(){
   return rows;
 }
 VIEWS.cohorts=()=>{const t=D.anchor==='trial', u=t?'trial starter':'install', ev=t?'trial start':'install';
- return `<div class="card"><div class="hd"><div><h3 data-srcid="k_roast">Cohort ROAS by install ${S.gran==='week'?'week':'day'}</h3></div></div><div id="k_roast"></div></div>`+w0Card('k_w0')+`<h2 data-srcid="k_w0">W0 by install ${S.gran==='week'?'week':'day'}</h2><div id="k_w0t"></div><h2>${t?'Trial-start':'Install'} cohorts</h2>`+
+ return `<div class="card"><div class="hd"><div><h3 data-srcid="k_roast">Cohort ROAS by install ${per()}</h3></div></div><div id="k_roast"></div></div>`+w0Card('k_w0')+`<h2>${t?'Trial-start':'Install'} cohorts</h2>`+
  `<div class="grid c2">${card('LTV curve','',null,'k_ltv')}${card(`ROAS by day since ${ev}`,'',null,'k_roas')}</div>
  <h2 data-srcid="k_h1">LTV per ${u}</h2><div id="k_h1"></div>${t?'':`<h2 data-srcid="k_h4">Trial start rate</h2><div id="k_h4"></div>`}`};
 VIEWS.cohorts.after=()=>{
   renderCohortRoas($('#k_roast'));
-  renderW0($('#k_w0'),$('#k_w0t'));
-  const rows=cohortModel(), w=win(S.dataEnd), rr=rows.filter(r=>r.d>=(S.gran==='week'?monday(w.from):w.from)&&r.d<=w.to);
+  renderW0($('#k_w0'),null);
+  const rows=cohortModel(), w=win(S.dataEnd), rr=rows.filter(r=>r.d>=pStart(w.from)&&r.d<=w.to);
   if(!rr.length){['k_ltv','k_roas'].forEach(i=>$('#'+i).innerHTML='<div class="empty">No cohort data</div>');['k_h1','k_h4'].forEach(i=>{if($('#'+i))$('#'+i).innerHTML='<div class="empty">No cohort data</div>'});return;}
   const days=[...Array(31).keys()];
   const ltv=days.map(n=>{const e=rr.filter(r=>r.maxDay>=n&&r.size>0);return e.length?e.reduce((s,r)=>s+r.cumRev[n],0)/sumK(e,'size'):NaN});
@@ -1007,8 +1051,8 @@ function heatT(el,{rows,first='Install date',pre=[],cols,fmt,scale,tot}){
 }
 /** group day rows into Monday weeks: sums numeric fields; a field is blank for the week if any day is blank (unfinished) */
 function weekly(rows,numKeys,strictKeys){
-  if(S.gran!=='week')return rows;
-  const m=new Map();rows.forEach(r=>{const k=monday(r.d);let o=m.get(k);if(!o){o={d:k,label:k};numKeys.forEach(f=>o[f]=0);m.set(k,o)}
+  if(S.gran==='day')return rows;
+  const m=new Map();rows.forEach(r=>{const k=pStart(r.d);let o=m.get(k);if(!o){o={d:k,label:k};numKeys.forEach(f=>o[f]=0);m.set(k,o)}
     numKeys.forEach(f=>{const v=r[f];if(strictKeys.includes(f)){o[f]=isFinite(o[f])&&isFinite(v)?o[f]+v:NaN}else if(isFinite(v))o[f]+=v})});
   return [...m.values()];
 }
@@ -1030,7 +1074,7 @@ function ltvCurve(rows){let v=NaN;return RCOLS.map(([p],k)=>{
 function renderCohortRoas(el){
   const rows=cohortRoasRows();
   const tr=(rs,p)=>{const x=rs.filter(r=>isFinite(r['r'+p])&&r.spend>0);return x.length?div(sumK(x,'r'+p),sumK(x,'spend')):NaN};
-  heatT(el,{rows,first:S.gran==='week'?'Install week':'Install day',fmt:fX,scale:1.2,
+  heatT(el,{rows,first:'Install '+per(),fmt:fX,scale:1.2,
     pre:[{label:'Installs',get:r=>r.inst,fmt:fK,tot:rs=>sumK(rs,'inst')},{label:'Spend',get:r=>r.spend,fmt:fUsd,tot:rs=>sumK(rs,'spend')}],
     cols:RCOLS.map(([p,l])=>({label:l,get:r=>!isFinite(r['r'+p])?NaN:r.spend>0?r['r'+p]/r.spend:'nospend',tot:rs=>tr(rs,p)})),tot:{label:'Total'}});
 }
@@ -1056,7 +1100,7 @@ function retPayRows(filter){
 }
 const retMode=()=>S.retMode||(S.retMode=LS.get('yk_ret')||'app');
 VIEWS.retention=()=>{const app=retMode()==='app';
-  return `<div class="card"><div class="hd"><div><h3 data-srcid="${app?'r_tab':'r_tabp'}">${app?'App-open':'Purchase'} retention by ${app?'install':'trial start'} ${S.gran==='week'?'week':'day'}</h3></div><div class="pillbar"><div class="seg" id="segRet"></div></div></div><div id="r_tab"></div></div>
+  return `<div class="card"><div class="hd"><div><h3 data-srcid="${app?'r_tab':'r_tabp'}">${app?'App-open':'Purchase'} retention by ${app?'install':'trial start'} ${per()}</h3></div><div class="pillbar"><div class="seg" id="segRet"></div></div></div><div id="r_tab"></div></div>
   <div class="grid c2">${card('Retention curve','',null,app?'r_curve':'r_curvep')}${card(app?'D1 & W1 retention':'Trial → paid & W1','',null,app?'r_trend':'r_trendp',legendFor())}</div>
   <h2 data-srcid="${app?'r_os':'r_osp'}">By OS</h2><div id="r_os"></div>`};
 VIEWS.retention.after=()=>{
@@ -1067,7 +1111,7 @@ VIEWS.retention.after=()=>{
   const base=(app?retAppRows():retPayRows()).filter(r=>inR(r.d,w.from,w.to)).sort((a,b)=>a.d<b.d?1:-1);
   const rows=weekly(base,['u',...COLS_.map(c=>c[0])],COLS_.map(c=>c[0]));
   const pct=(rs,k)=>{const x=rs.filter(r=>isFinite(r[k]));return x.length?div(sumK(x,k),sumK(x,'u')):NaN};
-  heatT($('#r_tab'),{rows,first:S.gran==='week'?(app?'Install week':'Trial week'):(app?'Install day':'Trial day'),fmt:fPct,
+  heatT($('#r_tab'),{rows,first:(app?'Install ':'Trial ')+per(),fmt:fPct,
     pre:[{label:app?'Users':'Trial starters',get:r=>r.u,fmt:fK,tot:rs=>sumK(rs,'u')}],cols:COLS_.map(([k,l])=>({label:l,get:r=>isFinite(r[k])&&r.u>0?r[k]/r.u:NaN,tot:rs=>pct(rs,k)})),tot:{label:'Total'}});
   timeChart($('#'+(app?'r_curve':'r_curvep')),{dates:COLS_.map(c=>c[1]),type:'area',fmt:fPct,noBucket:true,series:[{name:'Retention',color:'var(--c1)',values:COLS_.map(([k])=>pct(base,k))}]});
   const asc=[...base].reverse(), dts=asc.map(r=>r.d), k1=COLS_[0][0], k2=app?'w1':'p1';
@@ -1079,7 +1123,7 @@ VIEWS.retention.after=()=>{
 /* ============================================================ Geo */
 VIEWS.geo=()=>`<div class="card"><div class="hd"><div><h3 data-srcid="g_tab">Countries</h3></div></div><div id="g_tab"></div></div>
  <div class="grid c2">${card('Spend by country','',null,'g_spend')}${card('Net revenue by country','',null,'g_rev')}</div>
- <h2>Return on ad spend</h2><div class="grid c2">${card(`W0 ROAS by install ${S.gran==='week'?'week':'day'}`,'',null,'g_roas',legendFor())}${card('LTV per install','',null,'g_ltv',legendFor())}</div>
+ <h2>Return on ad spend</h2><div class="grid c2">${card(`W0 ROAS by install ${per()}`,'',null,'g_roas',legendFor())}${card('LTV per install','',null,'g_ltv',legendFor())}</div>
  <h2 data-srcid="g_ret">App-open retention by country</h2><div id="g_ret"></div>`;
 VIEWS.geo.after=()=>{
   const w=win(), wa=S.chan==='all';
@@ -1133,7 +1177,7 @@ const TABS_UI=[['overview','Overview'],['actives','Active Users'],['subs','Subsc
 const TITLES={...Object.fromEntries(TABS_UI),sources:'Data Sources'};
 /* where each page's numbers come from (shown when hovering a page, chart or table title) */
 const SOURCES={
-  overview:[['Spend, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['Total ROAS','Adapty net revenue ÷ all ad spend'],['W0','Adapty install cohorts'],['Net revenue, paid subs','Adapty'],['Payers','PostHog']],
+  overview:[['Spend, installs','Meta, Google Ads, Apple Search Ads (minus promotions)'],['Trials','AppsFlyer'],['Total ROAS','Adapty net revenue ÷ all ad spend'],['W0','Adapty install cohorts'],['Net revenue, paid subs','Adapty'],['Payers','PostHog']],
   subs:[['Everything','Adapty analytics']],
   channels:[['Spend, impr., clicks, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer']],
   campaigns:[['Spend, impr., clicks, installs','Meta, Google Ads, Apple Search Ads'],['Trials','AppsFlyer'],['W0','Adapty install cohorts']],
@@ -1230,7 +1274,7 @@ function drawPicker(){
     closePicker();S.animate=true;render();};
 }
 /* segmented pill controls with a sliding thumb */
-const SEGS={segGran:{key:'gran',opts:[['day','Daily'],['week','Weekly']]},segRange:{key:'range',opts:[[7,'7D'],[30,'30D'],[0,'All'],['pick','']]},segOs:{key:'os',opts:[['all','All OS'],['ios','iOS'],['android','Android']]},segChan:{key:'chan',opts:[['all','All'],['meta','Meta'],['google','Google'],['asa','ASA']]}};
+const SEGS={segGran:{key:'gran',opts:[['day','Daily'],['week','Weekly'],['month','Monthly']]},segRange:{key:'range',opts:[[7,'7D'],[30,'30D'],[0,'All'],['pick','']]},segOs:{key:'os',opts:[['all','All OS'],['ios','iOS'],['android','Android']]}};
 function segs(){ Object.entries(SEGS).forEach(([id,cfg])=>{const el=$('#'+id); if(!el)return;
   if(!el.dataset.ready){el.innerHTML='<span class="thumb"></span>'+cfg.opts.map(([v,l])=>`<button data-v="${v}">${l}</button>`).join('');el.dataset.ready=1;
     el.querySelectorAll('button').forEach(b=>b.onclick=()=>{
@@ -1260,7 +1304,7 @@ function render(){
   const stale=isStale?`<div class="banner stale"><b>Data not updated today.</b> Last pull ${last?new Date(last).toLocaleString([], {dateStyle:'medium',timeStyle:'short'}):'never'}.<button class="mini" onclick="document.getElementById('bPull').click()">Pull Live Data</button></div>`:'';
   const fr=$('#fresh'); fr.classList.toggle('stale',isStale); fr.querySelector('span').textContent=S.demo?'Demo data':last?`Updated ${lastDay===TODAY?'today':fmtDay(lastDay)} ${new Date(last).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}`:'Never pulled';
   const osNote='';
-  $('#main').innerHTML=stale+osNote+(S.demo?`<div class="banner"><b>Demo data.</b> Connect your Google Sheet web app with ⚙ (or hard-code it in <code>CONFIG</code>), then press <b>Pull Live Data</b>. Charts below show generated sample numbers.</div>`:(!hasAny?`<div class="banner"><b>The sheet is empty.</b> Press <b>Pull Live Data</b> after saving your keys in the sheet menu <i>YK Dashboard → Setup keys</i>.</div>`:''))+VIEWS[S.tab]();
+  $('#main').innerHTML=osNote+(S.demo?`<div class="banner"><b>Demo data.</b> Connect your Google Sheet web app with ⚙ (or hard-code it in <code>CONFIG</code>), then press <b>Pull Live Data</b>. Charts below show generated sample numbers.</div>`:(!hasAny?`<div class="banner"><b>The sheet is empty.</b> Press <b>Pull Live Data</b> after saving your keys in the sheet menu <i>YK Dashboard → Setup keys</i>.</div>`:''))+VIEWS[S.tab]();
   VIEWS[S.tab].after&&VIEWS[S.tab].after();
   // entrance motion only on navigation / filter changes, not on resize or hover re-renders
   const mn=$('#main'); mn.classList.remove('anim'); clearTimeout(mn._t);
@@ -1270,6 +1314,8 @@ function render(){
 }
 $('#fFin').checked=S.finished;
 $('#fFin').addEventListener('change',()=>{S.finished=$('#fFin').checked;LS.set('yk_fin',S.finished?'1':'0');S.animate=true;render()});
+$('#fPromo').checked=S.promo;
+$('#fPromo').addEventListener('change',()=>{S.promo=$('#fPromo').checked;LS.set('yk_promo',S.promo?'1':'0');S.animate=true;render()});
 $('#fCmp').checked=S.compare;
 $('#fCmp').addEventListener('change',()=>{S.compare=$('#fCmp').checked;LS.set('yk_cmp',S.compare?'1':'0');render()});
 addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(render,150)});
@@ -1297,13 +1343,35 @@ async function load(){
   catch(e){ if(!shown){toast('Could not load the data: '+esc(e.message)); setData(demo(),true);} }
 }
 $('#bPull').onclick=async()=>{
-  const b=$('#bPull'); if(b.disabled)return; b.disabled=true;b.classList.add('busy');$('#pullTxt').textContent='Pulling…';
+  const b=$('#bPull'); if(b.disabled)return; b.disabled=true;b.classList.add('busy');$('#bPullM').classList.add('busy');$('#pullTxt').textContent='Pulling…';
   try{
     if(!url()){ await new Promise(r=>setTimeout(r,1200)); toast('Demo mode: no web app URL set. Open ⚙ to connect your sheet.'); }
     else{ const j=await call({action:'pull',what:'all'}); if(!EMBED){try{localStorage.setItem(CACHE_KEY,JSON.stringify(j))}catch(e){}} setData(j,false);
       toast((j.pull||[]).map(s=>`<div><span class="pill ${s.status}">${s.status}</span> <b>${s.source}</b> ${s.status==='ok'?s.rows+' rows':esc(s.message)}</div>`).join(''),12000); }
   }catch(e){ toast('Pull failed: '+esc(e.message),9000); }
-  b.disabled=false;b.classList.remove('busy');$('#pullTxt').textContent='Pull Live Data';
+  b.disabled=false;b.classList.remove('busy');$('#bPullM').classList.remove('busy');$('#pullTxt').textContent='Pull Live Data';
+};
+$('#bPullM').onclick=()=>$('#bPull').click();
+/* ---- promotions modal: list, add, delete (stored in the sheet's "promotions" tab, so every viewer sees them) */
+function drawPromos(){
+  const ps=[...(D.promos||[])].sort((a,b)=>a.start<b.start?1:-1);
+  $('#pList').innerHTML=ps.length?ps.map(p=>{const n=dayList(p.start,p.end).length;return `<div class="pi"><div>${chBadge(p.ch)}<small>${fmtD(p.start)} – ${fmtD(p.end)} · ${n} day${n>1?'s':''} · ${fUsd2(p.amt/n)}/day${p.note?' · '+esc(p.note):''}</small></div><b>${fUsd2(p.amt)}</b><button data-del="${esc(p.id)}" title="Delete"><svg class="i" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button></div>`}).join(''):'<div class="none">No promotions yet.</div>';
+  $('#pList').querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{b.disabled=true;
+    try{const j=await call({action:'promo_delete',id:b.dataset.del});if(!EMBED){try{localStorage.setItem(CACHE_KEY,JSON.stringify(j))}catch(e){}}setData(j,false);drawPromos();toast('Promotion deleted');}
+    catch(e){b.disabled=false;toast('Could not delete: '+esc(e.message));}});
+}
+$('#bPromo').onclick=()=>{if(!S.raw)return;const e=S.dataEnd||TODAY;$('#pStart').value=$('#pStart').value||e.slice(0,8)+'01';$('#pEnd').value=$('#pEnd').value||e;drawPromos();$('#pmodal').classList.add('on')};
+$('#pClose').onclick=$('#pCancel').onclick=()=>$('#pmodal').classList.remove('on');
+$('#pmodal').onclick=e=>{if(e.target.id==='pmodal')$('#pmodal').classList.remove('on')};
+$('#pSave').onclick=async()=>{
+  const q={action:'promo_add',network:$('#pNet').value,amount:String(+$('#pAmt').value),start:$('#pStart').value,end:$('#pEnd').value,note:$('#pNote').value.trim()};
+  if(!(+q.amount>0))return toast('Enter an amount in dollars');
+  if(!isoDay(q.start)||!isoDay(q.end)||q.start>q.end)return toast('Pick a start date on or before the end date');
+  if(!url()||S.demo)return toast('Connect the sheet first: promotions are saved there');
+  const b=$('#pSave');b.disabled=true;b.textContent='Saving…';
+  try{const j=await call(q);if(!EMBED){try{localStorage.setItem(CACHE_KEY,JSON.stringify(j))}catch(e){}}S.animate=true;setData(j,false);$('#pAmt').value='';$('#pNote').value='';drawPromos();toast(`Promotion added: ${fUsd2(+q.amount)} on ${CH[q.network].name}`);}
+  catch(e){toast('Could not save: '+esc(e.message));}
+  b.disabled=false;b.textContent='Add promotion';
 };
 $('#bSet').onclick=()=>{S.tab='sources';LS.set('yk_tab','sources');S.animate=true;render();window.scrollTo({top:0,behavior:'smooth'})};
 $('#sCancel').onclick=()=>$('#modal').classList.remove('on');
