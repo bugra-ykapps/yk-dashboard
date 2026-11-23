@@ -1358,13 +1358,13 @@ async function load(){
     const keepTab=S.tab; setData(fresh,false); if(shown){S.tab=keepTab;} }
   catch(e){ if(!shown){toast('Could not load the data: '+esc(e.message)); setData(demo(),true);} }
 }
-const PULL_GROUPS=[['cohorts','adapty'],['posthog'],['geo'],['users'],['meta','google','asa','appsflyer']];
+const PULL_GROUPS=[['cohorts'],['adapty'],['posthog'],['geo'],['users'],['meta','google','asa','appsflyer']];
 $('#bPull').onclick=async()=>{
   const b=$('#bPull'); if(b.disabled)return; b.disabled=true;b.classList.add('busy');$('#bPullM').classList.add('busy');$('#pullTxt').textContent='Pulling…';
   try{
     if(!url()){ await new Promise(r=>setTimeout(r,1200)); toast('Demo mode: no web app URL set. Open ⚙ to connect your sheet.'); }
     else{
-      // groups run at the same time (one Apps Script run each); both Adapty pulls share a group so they don't trip its rate limit
+      // groups run at the same time (one Apps Script run each); Adapty's 429 rate limits are retried inside each pull
       let n=0; const tick=()=>$('#pullTxt').textContent=`Pulling… ${n}/${PULL_GROUPS.length}`; tick();
       const res=await Promise.all(PULL_GROUPS.map(g=>call({action:'pull',what:g.join(','),lite:'1'}).then(r=>(n++,tick(),r.pull||[]),e=>(n++,tick(),g.map(x=>({source:x,status:'error',rows:0,message:e.message}))))));
       $('#pullTxt').textContent='Loading…';
