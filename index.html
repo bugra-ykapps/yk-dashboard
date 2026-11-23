@@ -342,7 +342,16 @@ table.heat{border-spacing:4px;font-size:12.5px}
   #nav{width:100%;justify-content:space-between}#nav button{padding:10px;flex:none;width:auto}
   .top{align-items:center}.actions{padding-top:0;gap:6px}.round{width:38px;height:38px}
   .actions .round.pull{display:grid}
+  /* phone: the controls fold into one summary button; tap to open or close them */
+  .tools .ftoggle{display:flex}
+  .tools:not(.open)>:not(.ftoggle){display:none}
+  .tools.open .ftoggle{background:var(--ink);color:var(--on-ink)}
+  .tools.open .ftoggle .chev{transform:rotate(180deg)}
+  .tools.open>:not(.ftoggle){animation:rise .3s var(--ease) both}
 }
+.ftoggle{display:none;align-items:center;gap:10px;width:100%;border:0;border-radius:999px;padding:11px 16px;background:var(--card);color:var(--ink);box-shadow:var(--shadow);font-size:13px;font-weight:500;text-align:left}
+.ftoggle span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ftoggle .i{width:17px;height:17px;flex:none}.ftoggle .chev{transition:transform .25s var(--ease)}
 .round.pull{display:none;background:var(--ink);color:var(--on-ink)}
 .round.pull .spin{border-color:color-mix(in srgb,var(--on-ink) 30%,transparent);border-top-color:var(--on-ink)}
 .round.pull.busy .spin{display:block}.round.pull.busy .arrow{display:none}
@@ -368,7 +377,8 @@ table.heat{border-spacing:4px;font-size:12.5px}
         <button class="round" id="bSet" title="Settings · data sources"><svg class="i" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg></button>
       </div>
     </div>
-    <div class="tools">
+    <div class="tools" id="tools">
+      <button class="ftoggle" id="bFilt" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M3 5h18M6 12h12M10 19h4"/></svg><span id="fSum">Filters</span><svg class="i chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button>
       <div class="pillbar"><div class="seg" id="segGran"></div></div>
       <div class="pillbar"><div class="seg" id="segRange"></div></div>
       <div class="pillbar"><div class="seg" id="segOs"></div></div>
@@ -1292,8 +1302,14 @@ function segs(){ Object.entries(SEGS).forEach(([id,cfg])=>{const el=$('#'+id); i
 function placeThumbs(){document.querySelectorAll('.seg').forEach(el=>{const on=el.querySelector('button.on'),th=el.querySelector('.thumb'); if(on&&th){th.style.width=on.offsetWidth+'px';th.style.height=on.offsetHeight+'px';th.style.top=on.offsetTop+'px';th.style.transform=`translateX(${on.offsetLeft}px)`;}});}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>placeThumbs());
 const fmtDay=d=>{const x=new Date(d+'T00:00:00Z');return x.toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'})};
+/** one-line summary of the controls for the folded phone filter button */
+function filterSummary(){
+  const g={day:'Daily',week:'Weekly',month:'Monthly'}[S.gran], r=S.custom?`${fmtDay(S.custom.from)} – ${fmtDay(S.custom.to)}`:S.range?S.range+'D':'All time';
+  const o={all:'All OS',ios:'iOS',android:'Android'}[S.os], on=[S.finished&&'Finished',S.compare&&'Comparison',S.promo&&'Promotions'].filter(Boolean);
+  $('#fSum').textContent=[g,r,o,...on].join(' · ');
+}
 function render(){
-  if(!S.raw)return; if(!VIEWS[S.tab])S.tab='overview'; nav(); build(); segs();
+  if(!S.raw)return; filterSummary(); if(!VIEWS[S.tab])S.tab='overview'; nav(); build(); segs();
   const tl=TITLES[S.tab]||'';
   const h=$('#pageTitle'); if(h.textContent!==tl){h.textContent=tl;h.classList.remove('title-anim');void h.offsetWidth;h.classList.add('title-anim');}
   h.dataset.srcid='page:'+S.tab;
@@ -1352,6 +1368,7 @@ $('#bPull').onclick=async()=>{
   b.disabled=false;b.classList.remove('busy');$('#bPullM').classList.remove('busy');$('#pullTxt').textContent='Pull Live Data';
 };
 $('#bPullM').onclick=()=>$('#bPull').click();
+$('#bFilt').onclick=()=>{const t=$('#tools'),o=t.classList.toggle('open');$('#bFilt').setAttribute('aria-expanded',o);if(o)requestAnimationFrame(placeThumbs);};
 /* ---- promotions modal: list, add, delete (stored in the sheet's "promotions" tab, so every viewer sees them) */
 function drawPromos(){
   const ps=[...(D.promos||[])].sort((a,b)=>a.start<b.start?1:-1);
